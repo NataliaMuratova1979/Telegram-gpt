@@ -1,0 +1,66 @@
+:root {
+  /* Семейства шрифтов */
+  --font-family-head: 'Pragmatica', sans-serif;
+  --font-family-question: 'Pragmatica', sans-serif;
+  --font-family-word: 'Respect', serif;
+
+  /* Размеры шрифтов и интерльньяж */
+  --font-size-head: 50px; /* заголовки */
+  --font-line-head: 60px;
+  --font-size-second: 27px; /* кнопки и вопросы */
+  --font-line-second: 32px;
+  --font-size-word: 44px; /* слова в заданиях */
+  --font-line-word: 44px; 
+
+  /* Переменные для letter-spacing */
+  --letter-spacing-tight: -0.011em; /* Более плотное расстояние */
+
+  /* Переменные для веса */
+  --font-weight-word: 700; /* слова в заданиях */
+  --font-weight-second: 400; /* кнопки и вопросы */
+  --font-weight-head: 700; /* заголовки */
+
+  /* Шрифты для текста с указанием размера, интервала и семейства */
+  --font-head: var(--font-size-head) / var(--font-line-head)
+    var(--font-family-head); /* заголовки */
+
+  --font-second: var(--font-size-second) / var(--font-line-second)
+    var(--font-family-head); /* кнопки */
+
+  --font-question: var(--font-size-second) / var(--font-line-second)
+    var(--font-family-question); /* вопросы */
+
+  --font-word: var(--font-size-word) / var(--font-line-word)
+    var(--font-family-word); /* слова в заданиях */
+
+  /* переменные для цвета */
+  --background-color-primary: #FFF; /* цвет карточек и главной страницы */
+  --background-color-secondary: #EF8031; /* цвет для фона главной страницы */
+  --button-color-disabled: #FFFAC0; /* цвет для неактивной кнопки */
+  --button-color-right: #C5DF94; /* цвет для верной кнопки и надписи */
+  --button-color-wrong: #ED1C24; /* цвет для неверной кнопки и надписи*/
+  --tag-color-pale-1: #F9C3D2; /* цвет для темы 1*/
+  --tag-color-pale-2: #C8EAF5; /* цвет для темы 1*/
+  --tag-color-pale-3: #C5DF94; /* цвет для темы 3*/
+  --tag-color-pale-4: #D8D6EC; /* цвет для темы 4*/
+  --tag-color-pale-5: #FDD0B1; /* цвет для темы 5*/
+  --tag-color-exit: #D1D3D4; /* цвет для темы 5*/
+
+  --font-color-primary: 231F20; /* Основной цвет текста, Text */
+
+  --overlay-color: #8e8e8e99; /* overlay */
+  /*  --button-color-hover: #deebc5; /* Button hover */
+
+  
+  /* переменные для рамок и скруглений */
+  --border-radius-big: 24px; /* главная страницаo */
+  --border-radius-small: 12px; /* кнопки */
+
+  /* переменные для padding */
+  --padding-big: 25px; /* сбоку на главной странице */
+  --padding-small: 18px; /* cверху на главной странице, со всех сторон */
+
+  /* переменные для gap */
+  --gap-big: 35px; /* sidebar, userinfo */
+  --gap-small: 18px; /* cards */
+}

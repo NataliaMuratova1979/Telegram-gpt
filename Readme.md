@@ -25,3 +25,7 @@ my-telegram-app/
 ├── index.html                     // Основной HTML-файл
 ├── package.json
 └── README.md
+
+1. Скачиваем шрифты, помещаем их в папку public/fonts.
+2. Создаем папку app/styles, где размещаем css fonts, reset, typography, variables
+3. 
