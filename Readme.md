@@ -28,4 +28,8 @@ my-telegram-app/
 
 1. Скачиваем шрифты, помещаем их в папку public/fonts.
 2. Создаем папку app/styles, где размещаем css fonts, reset, typography, variables
-3. 
+3. Создаем папку shared. Внутри папки:
+- assets (icons, images, logo)
+- hooks
+- lib/constants
+- ui (компоненты по мелочи)
