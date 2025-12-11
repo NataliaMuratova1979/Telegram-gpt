@@ -3,4 +3,5 @@
   font-family: var(--font-family-head);
   font-weight: var(--font-weight-head);
   font-size: var(--font-size-head);
+  line-height: 1.5; /* увеличенное межстрочное расстояние */
 }

@@ -2,3 +2,9 @@
 @import './_variables.css';
 @import './_fonts.css';
 @import './_typography.css';
+
+.test-div {
+  width: 100px;
+  height: 50px;
+  background-color: var(--tag-color-pale-1);
+}

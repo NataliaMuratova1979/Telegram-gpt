@@ -13,26 +13,27 @@
 }
 
 /* Цветные кнопки (можем менять через inline или динамически) */
-.button_colorful {
-    outline: none;
-  /* по факту, цвет задается через inline-стиль */
+.button_type_colorful {
+  outline: none;
+  /* при необходимости другие стили для цветных кнопок */
+  /* НЕ задавайте background-color здесь, он задаётся inline */
 }
 
 /* Варианты типов */
 .button_type_primary {
-  background-color: #007bff;
+ /* background-color: #007bff; */
   color: #fff;
 }
 .button_type_secondary {
-  background-color: #6c757d;
+ /* background-color: #6c757d;*/
   color: #fff;
 }
 .button_type_tertiary {
-  background-color: #17a2b8;
+ /* background-color: #17a2b8;*/
   color: #fff;
 }
 .button_type_ghost {
-  background-color: transparent;
+ /* background-color: transparent;*/
   border: 1px solid #ccc;
   color: #000;
 }
