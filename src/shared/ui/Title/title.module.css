@@ -2,4 +2,5 @@
   color: var(--font-color-primary);
   font-family: var(--font-family-head);
   font-weight: var(--font-weight-head);
+  font-size: var(--font-size-head);
 }
