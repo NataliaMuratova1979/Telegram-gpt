@@ -2,6 +2,7 @@ import React from 'react';
 import { Title } from './shared/ui/Title';
 import { Button } from './shared/ui/Button';
 import ColorDivs from './shared/ui/ColorDivs';
+import ColorfulButtons from './shared/ui/ColorfulButtons';
 import './app/styles/index.css';
 
 export const App: React.FC = () => {
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
       <Title as="h1">Заголовок</Title>
       <Title as="h2">Чередование цвета для списка кнопок.</Title>
       <ColorDivs />
+      <ColorfulButtons />
       {/* рендерим все кнопки, цвета чередуются */}
       {buttonsData.map((btn, idx) => (
         <Button
