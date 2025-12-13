@@ -1,0 +1,29 @@
+[
+  {
+    "topic": "Съедобное - несъедобное",
+    "words": [
+      { "id": 1, "word": "колесо", "yes": false, "length": "среднее" },
+      { "id": 2, "word": "хлеб", "yes": true, "length": "короткое" },
+      { "id": 3, "word": "яблоко", "yes": true, "length": "среднее" },
+      { "id": 4, "word": "газонокосилка", "yes": false, "length": "длинное" }
+    ]
+  },
+  {
+    "topic": "летает - не летает",
+    "words": [
+      { "id": 5, "word": "самолет", "yes": true, "length": "длинное"  },
+      { "id": 6, "word": "утка", "yes": true, "length": "короткое"  },
+      { "id": 7, "word": "диван", "yes": false, "length": "короткое" },
+      { "id": 8, "word": "вентилятор", "yes": false, "length": "длинное" }
+    ]
+  },
+  {
+    "topic": "мебель - электроприборы",
+    "words": [
+      { "id": 9, "word": "стул", "yes": true, "length": "короткое" },
+      { "id": 10, "word": "стол", "yes": true, "length": "короткое" },
+      { "id": 11, "word": "холодильник", "yes": false, "length": "длинное" },
+      { "id": 12, "word": "телевизор", "yes": false, "length": "длинное" }
+    ]
+  }
+]

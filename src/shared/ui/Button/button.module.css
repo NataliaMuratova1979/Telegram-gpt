@@ -9,6 +9,7 @@
   font-size: 14px;
   transition: box-shadow 0.3s, background-color 0.3s;
   display: inline-block;
+  min-width: 338px; /* добавлено для минимальной ширины */
   text-align: center;
 }
 
@@ -19,6 +20,11 @@
   /* НЕ задавайте background-color здесь, он задаётся inline */
 }
 
+/* Дополнительный класс для эффекта нажатия */
+.pressed {
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: box-shadow 0.2s ease;
+}
 /* Варианты типов */
 .button_type_primary {
  /* background-color: #007bff; */

@@ -1,0 +1,14 @@
+/* Пример стилей для разных вариантов */
+.button {
+  font-weight: bold;
+}
+
+.link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.checkbox {
+  font-size: 12px;
+}

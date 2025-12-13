@@ -1,5 +1,3 @@
-import React, { SyntheticEvent, ReactNode } from 'react';
-
 // в Button.types.ts
 export type ButtonType =
   | 'primary'

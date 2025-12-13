@@ -15,7 +15,7 @@ export const App: React.FC = () => {
     <div style={{ padding: 20 }}>
       <Title as="h1">Заголовок</Title>
       <Title as="h2">Чередование цвета для списка кнопок.</Title>
-      <ColorDivs />
+      
       <ColorfulButtons />
       {/* рендерим все кнопки, цвета чередуются */}
       {buttonsData.map((btn, idx) => (
