@@ -33,3 +33,15 @@ my-telegram-app/
 - hooks
 - lib/constants
 - ui (компоненты по мелочи)
+
+
+components/
+│
+├── MainPage.tsx
+├── TopicButtonList.tsx
+├── ModalWindow.tsx
+├── TopicSelectionModal.tsx
+├── ParametersModal.tsx
+├── WordsDisplayModal.tsx
+│
+/stores/ (если используете Redux или Context)

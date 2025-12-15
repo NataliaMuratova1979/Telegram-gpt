@@ -5,10 +5,12 @@ import ColorDivs from './shared/ui/ColorDivs';
 import ColorfulButtons from './shared/ui/ColorfulButtons';
 import './app/styles/index.css';
 
+// Импорт компонента с кнопкой для вывода тем
+import ButtonThemes from './api/mockExample'; // укажите правильный путь, где находится ваш ButtonThemes.tsx
+
 export const App: React.FC = () => {
   const buttonsData = Array.from({ length: 20 }, (_, i) => ({
     label: `Кнопка ${i + 1}`,
-    // другие свойства для кнопки, если нужно
   }));
 
   return (
@@ -17,17 +19,20 @@ export const App: React.FC = () => {
       <Title as="h2">Чередование цвета для списка кнопок.</Title>
       
       <ColorfulButtons />
-      {/* рендерим все кнопки, цвета чередуются */}
+
+      {/* Вставляем кнопку "Показать темы" */}
+      <ButtonThemes />
+
+      {/* Рендерим все остальные кнопки */}
       {buttonsData.map((btn, idx) => (
         <Button
           key={idx}
           type="colorful"
-          index={idx} // используем индекс глобально для чередования
+          index={idx}
           style={{ marginRight: 10, marginBottom: 10 }}
         >
           {btn.label}
         </Button>
-        
       ))}
     </div>
   );

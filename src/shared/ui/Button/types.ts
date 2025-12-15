@@ -16,6 +16,13 @@ export type ButtonHtmlType = 'button' | 'submit' | 'reset';
 
 export type ButtonIconPosition = 'left' | 'right';
 
+export type ButtonPurpose =
+  | 'open-modal'
+  | 'select-option'
+  | 'submit'
+  | 'cancel'
+  | 'custom';
+
 export interface ButtonProps
   extends Omit<React.HTMLProps<HTMLButtonElement>, 'type' | 'size'> {
   type?: ButtonType;
@@ -28,4 +35,5 @@ export interface ButtonProps
   fill?: string;
   stroke?: string;
   isCorrect?: boolean; // добавляем свойство
+  purpose?: ButtonPurpose;
 }

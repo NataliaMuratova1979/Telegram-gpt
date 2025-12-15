@@ -17,37 +17,64 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
   fill,
   stroke,
   htmlType = 'button',
+  purpose,
   ...rest
 }) => {
   const [isPressed, setIsPressed] = useState(false);
 
-  const handleClick = (e: SyntheticEvent) => {
+  const handleClick = (e: React.SyntheticEvent) => {
     if (disabled) return;
 
+    // Эффект нажатия
     setIsPressed(true);
-    setTimeout(() => setIsPressed(false), 200); // через 200мс эффект исчезнет
+    setTimeout(() => setIsPressed(false), 200);
 
-    // Логика обработки клика
+    // Вызов переданного обработчика
     if (onClick) {
       if (onClick.length === 0) {
         (onClick as () => void)();
       } else {
-        (onClick as (e: SyntheticEvent) => void)(e);
+        (onClick as (e: React.SyntheticEvent) => void)(e);
+      }
+    }
+
+    // Обработка действия по purpose
+    if (purpose) {
+      switch (purpose) {
+        case 'open-modal':
+          console.log('Открытие модального окна');
+          // Можно вызвать глобальную функцию или событие
+          break;
+        case 'select-option':
+          console.log('Выбор варианта');
+          break;
+        case 'submit':
+          console.log('Отправка формы');
+          break;
+        case 'cancel':
+          console.log('Отмена');
+          break;
+        case 'custom':
+          console.log('Кастомное действие');
+          break;
+        default:
+          break;
       }
     }
   };
 
   const classes = [
     styles.button,
-    type === 'colorful' ? styles.button_colorful : styles[`button_type_${type}`],
+    styles[`button_type_${type}`],
     styles[`button_size_${size}`],
     styles[`button_variant_${variant}`],
-    styles[`button_type_${type}`],
-    disabled ? styles.button_disabled : '',
+    fullWidth ? styles.fullWidth : '',
     className,
-    isPressed ? styles.pressed : '', // добавляйте класс при нажатии
+    isCorrect !== undefined ? (isCorrect ? styles['answer-correct'] : styles['answer-incorrect']) : '',
+    isPressed ? styles.pressed : '',
   ].filter(Boolean).join(' ');
 
+  // Расчет фона по index для colorful
   const backgroundColor: string | undefined = (() => {
     if (type === 'colorful' && typeof index === 'number') {
       const colors = [
@@ -64,9 +91,7 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
 
   const inlineStyles: React.CSSProperties = {
     ...(backgroundColor ? { backgroundColor } : {}),
-    ...(isCorrect !== undefined
-      ? { borderColor: isCorrect ? 'green' : 'red' }
-      : {}),
+    ...(isCorrect !== undefined ? { borderColor: isCorrect ? 'green' : 'red' } : {}),
     ...(fullWidth ? { width: '100%' } : {}),
     ...(fill ? { backgroundColor: fill } : {}),
     ...(stroke ? { borderColor: stroke } : {}),
