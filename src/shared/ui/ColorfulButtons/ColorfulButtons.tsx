@@ -32,6 +32,7 @@ const ColorfulButtons = () => {
             key={i}
             type="colorful"
             index={i}
+            purpose="select-option"
             style={{
               width: '120px',
               height: '40px',

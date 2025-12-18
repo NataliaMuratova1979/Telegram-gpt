@@ -9,7 +9,7 @@ function ButtonThemes() {
   };
 
   return (
-    <button onClick={handleClick}>Показать темы</button>
+    <button onClick={handleClick} >Показать темы</button>
   );
 }
 

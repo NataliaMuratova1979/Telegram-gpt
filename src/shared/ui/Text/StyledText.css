@@ -12,3 +12,11 @@
 .checkbox {
   font-size: 12px;
 }
+
+/* Стиль для разбивки текста в две строки */
+.doubleLine {
+  display: block; /* чтобы было в две строки */
+  white-space: pre-line; /* сохраняет перенос строки */
+  word-break: break-word; /* перенос длинных слов */
+  line-height: 1.2em; /* регулируем высоту строки по желанию */
+}

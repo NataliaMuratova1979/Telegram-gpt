@@ -1,4 +1,4 @@
-import React, { useState, SyntheticEvent } from 'react';
+import React, { useState } from 'react';
 import styles from './Button.module.css';
 import { ButtonProps } from './types';
 
@@ -43,7 +43,6 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
       switch (purpose) {
         case 'open-modal':
           console.log('Открытие модального окна');
-          // Можно вызвать глобальную функцию или событие
           break;
         case 'select-option':
           console.log('Выбор варианта');
@@ -63,6 +62,7 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
     }
   };
 
+  // Формируем базовые классы
   const classes = [
     styles.button,
     styles[`button_type_${type}`],
@@ -72,9 +72,11 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
     className,
     isCorrect !== undefined ? (isCorrect ? styles['answer-correct'] : styles['answer-incorrect']) : '',
     isPressed ? styles.pressed : '',
+    // Если purpose='select-option', добавляем стиль doubleLine
+    purpose === 'select-option' ? styles.doubleLine : '',
   ].filter(Boolean).join(' ');
 
-  // Расчет фона по index для colorful
+  // Расчёт фона по index (для colorful)
   const backgroundColor: string | undefined = (() => {
     if (type === 'colorful' && typeof index === 'number') {
       const colors = [
@@ -97,6 +99,23 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
     ...(stroke ? { borderColor: stroke } : {}),
   };
 
+  // Обработка отображения children
+  let displayChildren = children;
+
+  // Если purpose='select-option', делаем текст двухстрочным
+  if (purpose === 'select-option' && typeof children === 'string') {
+    const words = children.trim().split(/\s+/);
+    if (words.length >= 2) {
+      displayChildren = (
+        <>
+          {words[0]}
+          <br />
+          {words.slice(1).join(' ')}
+        </>
+      );
+    }
+  }
+
   return (
     <button
       type={htmlType}
@@ -106,7 +125,11 @@ export const Button: React.FC<ButtonProps & { index?: number }> = ({
       style={inlineStyles}
       {...rest}
     >
-      {children}
+      {purpose === 'select-option' ? (
+        <span className={styles.doubleLine}>{displayChildren}</span>
+      ) : (
+        children
+      )}
     </button>
   );
 };

@@ -64,4 +64,12 @@
   cursor: not-allowed;
 }
 
+/* Стили для принудительной разбивки текста на две строки */
+.doubleLine {
+  display: block;
+  white-space: pre-line; /* сохраняет переносы строк */
+  word-break: break-word; /* переносит длинные слова */
+  /* Можно также добавить max-height или line-height, чтобы ограничить высоту */
+}
+
 /* Отдельные стили для свойств correct/incorrect можно добавить */

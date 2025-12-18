@@ -3,7 +3,9 @@ import { Title } from './shared/ui/Title';
 import { Button } from './shared/ui/Button';
 import ColorDivs from './shared/ui/ColorDivs';
 import ColorfulButtons from './shared/ui/ColorfulButtons';
+import ThemesButtons from './shared/ui/ThemesButtons'; 
 import './app/styles/index.css';
+import { CloseButton } from './shared/ui/CloseButton';
 
 // Импорт компонента с кнопкой для вывода тем
 import ButtonThemes from './api/mockExample'; // укажите правильный путь, где находится ваш ButtonThemes.tsx
@@ -20,8 +22,21 @@ export const App: React.FC = () => {
       
       <ColorfulButtons />
 
+      {/* вставляем компонент тем */}
+      <ThemesButtons />
+
       {/* Вставляем кнопку "Показать темы" */}
-      <ButtonThemes />
+      <ButtonThemes /> 
+
+      <CloseButton
+  actionType="close"
+  onClose={() => console.log('Закрытие модалки')}
+/>
+
+<CloseButton
+  actionType="exit"
+  onExit={() => console.log('Выход из приложения')}
+/>
 
       {/* Рендерим все остальные кнопки */}
       {buttonsData.map((btn, idx) => (
