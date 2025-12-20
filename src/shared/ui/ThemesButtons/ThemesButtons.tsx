@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { getTopics } from '../../../api/mockApi';
 import { Button } from '../Button';
 
-const ThemesButtons = () => {
+interface ThemesButtonsProps {
+  onThemeSelect: (theme: string) => void; // добавили
+}
+
+const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => { // добавили пропсы
   const [themes, setThemes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
 
-  // Загрузить темы при монтировании
   useEffect(() => {
     getTopics().then((topics) => {
       setThemes(topics.map(t => t.topic));
     });
   }, []);
 
-  // Загрузка цветов, как в ColorfulButtons
   useEffect(() => {
     const colorVars = [
       '--tag-color-pale-1',
@@ -27,24 +29,22 @@ const ThemesButtons = () => {
     setColors(retrievedColors);
   }, []);
 
-  // Создаём массив индексов для кнопок
-  const indices = Array.from({ length: themes.length }, (_, i) => i);
-
   return (
     <div>
-      {/* Отображаем темы как цветные кнопки */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
         {themes.map((theme, i) => (
-          <Button purpose="select-option"
+          <Button
+            purpose="select-option"
             key={i}
             type="colorful"
             index={i}
-              style={{
+            style={{
               minWidth: '120px',
               padding: '8px',
-              backgroundColor: colors[i % colors.length], // для демонстрации
-              color: 'black', // черный текст
+              backgroundColor: colors[i % colors.length],
+              color: 'black',
             }}
+            onClick={() => onThemeSelect(theme)} // вызываем переданный коллбэк
           >
             {theme}
           </Button>

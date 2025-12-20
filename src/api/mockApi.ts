@@ -21,7 +21,7 @@ export const getTopics = (): Promise<ITopic[]> =>
 export const getWords = (
   topic: string,
   length: '' | 'короткое' | 'среднее' | 'длинное',
-  count: number
+  count: 5 | 10 | 'Много'
 ): Promise<IWord[]> =>
   new Promise((resolve) => {
     setTimeout(() => {
@@ -30,13 +30,22 @@ export const getWords = (
         resolve([]);
         return;
       }
+
+      // Фильтрация по длине
       let filtered = topicObj.words;
       if (length) {
         filtered = filtered.filter(w => w.length === length);
       }
-      if (count > 0 && count < filtered.length) {
-        filtered = filtered.slice(0, count);
+
+      // Обработка варианта количества слов
+      if (count === 'Много') {
+        // вернуть все слова
+        resolve([...filtered]);
+      } else {
+        // случайные слова
+        const n = count; // 5 или 10
+        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+        resolve(shuffled.slice(0, n));
       }
-      resolve([...filtered]);
     }, 400);
   });
