@@ -1,0 +1,59 @@
+// src/App.tsx
+import React, { useState } from 'react';
+import Modal from './components/Modal';
+import Form from './components/Form';
+
+function App() {
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [topic, setTopic] = useState<string | null>(null);
+  
+  // Первый этап: клик по кнопке
+  const handleMainButtonClick = (chosenTopic: string) => {
+    setTopic(chosenTopic);
+    setModalOpen(true);
+    // тут можно сразу сделать первый запрос, если нужно
+  };
+
+  // Второй этап: клик по кнопке в форме модалки
+  const handleModalButtonClick = () => {
+    // формируем параметры
+    const params = { topic }; // и т.п.
+    // вызываем второй запрос
+    fetch('/api/second-step', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }).then(/* обработка */);
+    setModalOpen(false);
+  };
+
+  return (
+    <div>
+      <button onClick={() => handleMainButtonClick('Тема 1')}>Выбрать Тему 1</button>
+      
+      {isModalOpen && (
+        <Modal onClose={() => setModalOpen(false)} title="Детали" >
+          {/* внутри — ваша форма или кнопка */}
+          <button onClick={handleModalButtonClick}>Выполнить второй запрос</button>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+export default App;
+
+
+Общая идея
+Первый этап:
+
+Пользователь кликает на кнопку на главной странице.
+В этом случае вы сохраняете выбранние данные (например, выбранную тему) в состояние компонента.
+После этого открываете модальное окно.
+Первый запрос (например, отправка темы) можно отправлять тут же, либо при подготовке к следующему шагу.
+Второй этап:
+
+В модальном окне пользователь взаимодействует с формой (выбор длины, количества слов, чекбоксы, кнопка).
+По нажатию на кнопку в модальном окне вы делаете второй запрос, уже с более детализированными данными (подготовленными на основании выбора).
+Техническое решение
+Шаг 1: В основном компоненте при клике по главной кнопке сохраняем тему и открываем модалку.
+Шаг 2: В модального компоненте по нажатию кнопки — формируем и отправляем второй запрос.

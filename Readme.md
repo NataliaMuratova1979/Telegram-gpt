@@ -45,3 +45,7 @@ components/
 ├── WordsDisplayModal.tsx
 │
 /stores/ (если используете Redux или Context)
+
+
+
+

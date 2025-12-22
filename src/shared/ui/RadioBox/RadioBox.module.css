@@ -1,0 +1,24 @@
+/* RadioBox.module.css */
+
+.container {
+  display: flex;
+  gap: 12px; /* расстояние между опциями */
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px; /* по желанию, можно настроить */
+  color: #000; /* цвет текста по умолчанию */
+  /* Можно добавить дополнительные стили */
+}
+
+.label.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.radio {
+  margin-right: 8px; /* расстояние между радиокнопкой и текстом */
+}

@@ -1,10 +1,7 @@
 // в Button.types.ts
 export type ButtonType =
-  | 'primary'
-  | 'secondary'
-  | 'tertiary'
-  | 'ghost'
   // специальные типы для вашей задачи
+  | 'default' 
   | 'colorful'
   | 'start'
   | 'answer-correct'
@@ -13,8 +10,6 @@ export type ButtonType =
 export type ButtonSize = 'small' | 'medium' | 'large';
 
 export type ButtonHtmlType = 'button' | 'submit' | 'reset';
-
-export type ButtonIconPosition = 'left' | 'right';
 
 export type ButtonPurpose =
   | 'open-modal'
