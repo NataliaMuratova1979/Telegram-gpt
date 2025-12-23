@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Title } from './shared/ui/Title';
 import { Button } from './shared/ui/Button';
 import ColorDivs from './shared/ui/ColorDivs';
@@ -10,35 +10,44 @@ import ButtonThemes from './api/mockExample';
 import Modal from './shared/ui/Modal';
 import CheckBox from './shared/ui/CheckBox';
 import RadioBox from './shared/ui/RadioBox';
+import { getWords } from './api/mockApi';
+import { IWord } from './api/types';
 
 export const App: React.FC = () => {
-  // Общее состояние формы для отправки
   const [formData, setFormData] = useState<{
     theme: string | null;
     agree: boolean;
     option: string;
+    lengthShort: boolean;
+    lengthMedium: boolean;
+    lengthLong: boolean;
   }>({
     theme: null,
     agree: false,
     option: 'option1',
+    lengthShort: false,
+    lengthMedium: false,
+    lengthLong: false,
   });
 
-  // Локальные стейты для компонента
+  const [words, setWords] = useState<IWord[]>([]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [radioValue, setRadioValue] = useState<string>('option1');
   const [isChecked, setIsChecked] = useState<boolean>(false);
 
-  // Массив для генерации 20 кнопок
   const buttonsData = Array.from({ length: 20 }, (_, i) => ({
     label: `Кнопка ${i + 1}`,
   }));
 
-  ///////////////////////////////////////////
-  // Обработчики для формы
-  ///////////////////////////////////////////
+  // Логика для отслеживания изменений слов
+  useEffect(() => {
+    if (words.length > 0) {
+      console.log('Отображены слова:', words);
+    }
+  }, [words]);
 
-  // Обработчик выбора темы (из ThemesButtons или другого UI)
   const handleThemeSelect = (theme: string) => {
     setFormData(prev => ({ ...prev, theme }));
     console.log('Тема в форме обновлена:', theme);
@@ -46,26 +55,40 @@ export const App: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Обработчик чекбокса
   const handleCheckboxChange = (value: boolean) => {
     setFormData(prev => ({ ...prev, agree: value }));
     console.log('Чекбокс отмечен:', value);
   };
 
-  // Обработчик радио
   const handleRadioChange = (value: string) => {
     setFormData(prev => ({ ...prev, option: value }));
     console.log('Выбрана опция радиобокса:', value);
   };
 
-  // Обработчик отправки
-  const handleSendData = () => {
-    console.log('Отправляемая форма:', formData);
+  const handleSendData = async () => {
+    if (!formData.theme) {
+      alert('Пожалуйста, выберите тему');
+      return;
+    }
+    let lengthParam: '' | 'короткое' | 'среднее' | 'длинное' = '';
+    if (formData.lengthShort) lengthParam = 'короткое';
+    else if (formData.lengthMedium) lengthParam = 'среднее';
+    else if (formData.lengthLong) lengthParam = 'длинное';
+
+    const count: 5 | 10 | 'Много' = 10;
+
+    try {
+      const result = await getWords(formData.theme, lengthParam, count);
+      console.log('Полученные слова:', result);
+      setWords(result);
+    } catch (error) {
+      console.error('Ошибка при получении слов:', error);
+    }
   };
 
   return (
     <div style={{ padding: 20 }}>
-
+      
       {/* Кнопка для открытия модального окна */}
       <div style={{ marginBottom: '20px' }}>
         <p>Кнопка для открытия модального окна</p>
@@ -92,16 +115,53 @@ export const App: React.FC = () => {
         />
       </div>
 
-      {/* Чекбокс */}
+      {/* Блок выбора по длине */}
       <div style={{ marginBottom: '20px' }}>
+        <h4>Выберите длину слов:</h4>
+        {/* Короткие */}
         <CheckBox
-          label="Согласен с условиями"
-          checked={isChecked}
+          label="Короткие"
+          checked={formData.lengthShort}
           onChange={(value) => {
-            setIsChecked(value);
-            handleCheckboxChange(value);
+            setFormData(prev => ({ ...prev, lengthShort: value }));
+            console.log('Короткие:', value);
           }}
         />
+        {/* Средние */}
+        <CheckBox
+          label="Средние"
+          checked={formData.lengthMedium}
+          onChange={(value) => {
+            setFormData(prev => ({ ...prev, lengthMedium: value }));
+            console.log('Средние:', value);
+          }}
+        />
+        {/* Длинные */}
+        <CheckBox
+          label="Длинные"
+          checked={formData.lengthLong}
+          onChange={(value) => {
+            setFormData(prev => ({ ...prev, lengthLong: value }));
+            console.log('Длинные:', value);
+          }}
+        />
+
+        {/* Кнопка для отправки */}
+        <div style={{ marginTop: '40px' }}>
+          <Button onClick={handleSendData}>Отправить запрос на сервер</Button>
+        </div>
+
+        {/* Отображение слов */}
+        {words.length > 0 && (
+          <div style={{ marginTop: '20px' }}>
+            <h4>Результаты:</h4>
+            <ul>
+              {words.map((word, index) => (
+                <li key={index}>{word.word}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Модальное окно */}
@@ -176,7 +236,7 @@ export const App: React.FC = () => {
         ))}
       </div>
 
-      {/* Кнопка отправки формы с выводом в консоль */}
+      {/* Кнопка для отправки данных */}
       <div style={{ marginTop: '40px' }}>
         <Button onClick={handleSendData}>Отправить данные</Button>
       </div>
