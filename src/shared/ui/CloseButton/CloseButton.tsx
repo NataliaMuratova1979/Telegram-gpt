@@ -8,6 +8,7 @@ interface CloseButtonProps {
   onExit?: () => void;
   actionType?: ActionType;
   ariaLabel?: string;
+  onClick?: () => void; // Добавлено
 }
 
 export const CloseButton: React.FC<CloseButtonProps> = ({
@@ -15,13 +16,18 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
   onExit,
   actionType = 'close',
   ariaLabel = 'Закрыть',
+  onClick, // Добавлено
 }) => {
   
   const handleClick = () => {
-    if (actionType === 'close' && onClose) {
-      onClose();
-    } else if (actionType === 'exit' && onExit) {
-      onExit();
+    if (onClick) {
+      onClick();
+    } else {
+      if (actionType === 'close' && onClose) {
+        onClose();
+      } else if (actionType === 'exit' && onExit) {
+        onExit();
+      }
     }
   };
 

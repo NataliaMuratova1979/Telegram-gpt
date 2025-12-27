@@ -1,4 +1,3 @@
-// mockApi.ts
 import mockData from './mockData.json';
 import type { ITopic, IWord } from './types';
 
@@ -15,13 +14,17 @@ export const getTopics = (): Promise<ITopic[]> =>
 /**
  * Получить слова по теме и фильтрам
  * @param topic - название темы
- * @param length - длина слова или пустая строка для любых
- * @param count - кол-во слов
+ * @param length - длина слова или пустая строка для любых ('', 'короткое', 'среднее', 'длинное')
+ * @param count - кол-во слов (5, 10, 'Много')
  */
+
+type LengthLabel = '' | 'короткое' | 'среднее' | 'длинное' | null;
+type WordCount = number | 'Много';
+
 export const getWords = (
   topic: string,
-  length: '' | 'короткое' | 'среднее' | 'длинное',
-  count: 5 | 10 | 'Много'
+  length: LengthLabel,
+  count: WordCount
 ): Promise<IWord[]> =>
   new Promise((resolve) => {
     setTimeout(() => {
@@ -34,15 +37,20 @@ export const getWords = (
       // Фильтрация по длине
       let filtered = topicObj.words;
       if (length) {
-        filtered = filtered.filter(w => w.length === length);
+        // используем функцию для определения длины слова
+        const lengthRules = {
+          "короткое": (w: string) => w.length < 5,
+          "среднее": (w: string) => w.length >= 5 && w.length <= 8,
+          "длинное": (w: string) => w.length > 8,
+        };
+        const ruleFn = lengthRules[length];
+        filtered = filtered.filter(w => ruleFn(w.word));
       }
 
       // Обработка варианта количества слов
       if (count === 'Много') {
-        // вернуть все слова
         resolve([...filtered]);
       } else {
-        // случайные слова
         const n = count; // 5 или 10
         const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         resolve(shuffled.slice(0, n));

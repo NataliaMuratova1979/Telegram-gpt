@@ -8,4 +8,5 @@ interface CloseButtonProps {
   onExit?: () => void;        // функция выхода из приложения
   actionType?: ActionType;    // тип действия
   ariaLabel?: string;         // доступность
+  onClick?: () => void;
 }

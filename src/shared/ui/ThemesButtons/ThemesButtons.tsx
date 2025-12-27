@@ -3,10 +3,10 @@ import { getTopics } from '../../../api/mockApi';
 import { Button } from '../Button';
 
 interface ThemesButtonsProps {
-  onThemeSelect: (theme: string) => void; // добавили
+  onThemeSelect: (theme: string) => void;
 }
 
-const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => { // добавили пропсы
+const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => {
   const [themes, setThemes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
 
@@ -34,8 +34,8 @@ const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => { // 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
         {themes.map((theme, i) => (
           <Button
-            purpose="select-option"
             key={i}
+            purpose="select-option"
             type="colorful"
             index={i}
             style={{
@@ -44,7 +44,9 @@ const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => { // 
               backgroundColor: colors[i % colors.length],
               color: 'black',
             }}
-            onClick={() => onThemeSelect(theme)} // вызываем переданный коллбэк
+            onClick={() => {
+              onThemeSelect(theme);
+            }}
           >
             {theme}
           </Button>

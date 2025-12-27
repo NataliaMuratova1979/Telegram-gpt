@@ -12,8 +12,15 @@ import CheckBox from './shared/ui/CheckBox';
 import RadioBox from './shared/ui/RadioBox';
 import { getWords } from './api/mockApi';
 import { IWord } from './api/types';
+import {
+  handleThemeSelect,
+  handleCheckboxChange,
+  handleRadioChange,
+  handleSendData,
+} from './shared/handlers/handlers';
 
 export const App: React.FC = () => {
+  // Начальные данные формы
   const [formData, setFormData] = useState<{
     theme: string | null;
     agree: boolean;
@@ -30,66 +37,68 @@ export const App: React.FC = () => {
     lengthLong: false,
   });
 
-  const [words, setWords] = useState<IWord[]>([]);
+  const [words, setWords] = useState<IWord[]>([]); // слова для отображения
+  const [isModalOpen, setIsModalOpen] = useState(false); // управление модальным
+  const [selectedTheme, setSelectedTheme] = useState<string | null>(null); // выбранная тема
+  const [radioValue, setRadioValue] = useState<string>('option1'); // радиобокс
+  const buttonsData = Array.from({ length: 20 }, (_, i) => ({ label: `Кнопка ${i + 1}` }));
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const [radioValue, setRadioValue] = useState<string>('option1');
-  const [isChecked, setIsChecked] = useState<boolean>(false);
+  // Выбор темы
+  const onThemeSelect = (theme: string) => {
+    handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)();
+  };
 
-  const buttonsData = Array.from({ length: 20 }, (_, i) => ({
-    label: `Кнопка ${i + 1}`,
-  }));
+  // Обработчик чекбоксов
+  const handleCheckbox = (field: keyof typeof formData, value: boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-  // Логика для отслеживания изменений слов
+  // Обработчик радиобокса
+  const handleRadio = (value: string) => {
+    setRadioValue(value);
+    handleRadioChange(setFormData)(value);
+  };
+
+  // Получение метки для фильтрации
+  const getSelectedLengthLabel = () => {
+    const { lengthShort, lengthMedium, lengthLong } = formData;
+    if (lengthShort && !lengthMedium && !lengthLong) return 'короткое';
+    if (!lengthShort && lengthMedium && !lengthLong) return 'среднее';
+    if (!lengthShort && !lengthMedium && lengthLong) return 'длинное';
+    return 'все';
+  };
+
+  // Обработка отправки
+  const handleClickSend = () => {
+    handleSendData({
+      formData,
+      setWords,
+      getWords,
+      selectedLengthLabel: getSelectedLengthLabel(),
+    });
+  };
+
+  // Логирование слов
   useEffect(() => {
     if (words.length > 0) {
       console.log('Отображены слова:', words);
     }
   }, [words]);
 
-  const handleThemeSelect = (theme: string) => {
-    setFormData(prev => ({ ...prev, theme }));
-    console.log('Тема в форме обновлена:', theme);
-    setSelectedTheme(theme);
-    setIsModalOpen(true);
-  };
-
-  const handleCheckboxChange = (value: boolean) => {
-    setFormData(prev => ({ ...prev, agree: value }));
-    console.log('Чекбокс отмечен:', value);
-  };
-
-  const handleRadioChange = (value: string) => {
-    setFormData(prev => ({ ...prev, option: value }));
-    console.log('Выбрана опция радиобокса:', value);
-  };
-
-  const handleSendData = async () => {
-    if (!formData.theme) {
-      alert('Пожалуйста, выберите тему');
-      return;
-    }
-    let lengthParam: '' | 'короткое' | 'среднее' | 'длинное' = '';
-    if (formData.lengthShort) lengthParam = 'короткое';
-    else if (formData.lengthMedium) lengthParam = 'среднее';
-    else if (formData.lengthLong) lengthParam = 'длинное';
-
-    const count: 5 | 10 | 'Много' = 10;
-
-    try {
-      const result = await getWords(formData.theme, lengthParam, count);
-      console.log('Полученные слова:', result);
-      setWords(result);
-    } catch (error) {
-      console.error('Ошибка при получении слов:', error);
-    }
-  };
-
   return (
     <div style={{ padding: 20 }}>
       
-      {/* Кнопка для открытия модального окна */}
+         {/* ThemesButtons */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3>ThemesButtons</h3>
+        <ThemesButtons
+           onThemeSelect={(theme) =>
+    handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)()
+  }
+        />
+      </div>
+
+      {/* Кнопка открытия модального */}
       <div style={{ marginBottom: '20px' }}>
         <p>Кнопка для открытия модального окна</p>
         <button onClick={() => setIsModalOpen(true)}>Открыть модальное окно</button>
@@ -105,53 +114,37 @@ export const App: React.FC = () => {
             { label: 'Опция 3', value: 'option3' },
           ]}
           selectedValue={radioValue}
-          onChange={(value) => {
-            console.log('Радио выбрано:', value);
-            setRadioValue(value);
-            handleRadioChange(value);
-          }}
+          onChange={handleRadio}
           name="sampleRadio"
           disabled={false}
         />
       </div>
 
-      {/* Блок выбора по длине */}
+      {/* Выбор по длине */}
       <div style={{ marginBottom: '20px' }}>
         <h4>Выберите длину слов:</h4>
-        {/* Короткие */}
         <CheckBox
           label="Короткие"
           checked={formData.lengthShort}
-          onChange={(value) => {
-            setFormData(prev => ({ ...prev, lengthShort: value }));
-            console.log('Короткие:', value);
-          }}
+          onChange={(value: boolean) => handleCheckbox('lengthShort', value)}
         />
-        {/* Средние */}
         <CheckBox
           label="Средние"
           checked={formData.lengthMedium}
-          onChange={(value) => {
-            setFormData(prev => ({ ...prev, lengthMedium: value }));
-            console.log('Средние:', value);
-          }}
+          onChange={(value: boolean) => handleCheckbox('lengthMedium', value)}
         />
-        {/* Длинные */}
         <CheckBox
           label="Длинные"
           checked={formData.lengthLong}
-          onChange={(value) => {
-            setFormData(prev => ({ ...prev, lengthLong: value }));
-            console.log('Длинные:', value);
-          }}
+          onChange={(value: boolean) => handleCheckbox('lengthLong', value)}
         />
 
-        {/* Кнопка для отправки */}
+        {/* Кнопка отправки */}
         <div style={{ marginTop: '40px' }}>
-          <Button onClick={handleSendData}>Отправить запрос на сервер</Button>
+          <Button onClick={handleClickSend}>Отправить запрос на сервер</Button>
         </div>
 
-        {/* Отображение слов */}
+        {/* Результаты */}
         {words.length > 0 && (
           <div style={{ marginTop: '20px' }}>
             <h4>Результаты:</h4>
@@ -164,6 +157,28 @@ export const App: React.FC = () => {
         )}
       </div>
 
+            {/* Модальное окно */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3>Модальное окно</h3>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Тема выбрана"
+          modalType="option"
+        >
+          <p>Вы выбрали тему: {selectedTheme}</p>
+        </Modal>
+      </div>
+
+            {/* ThemesButtons */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3>ThemesButtons</h3>
+        <ThemesButtons
+  onThemeSelect={(theme) => handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)}
+/>
+      </div>
+      
+      
       {/* Модальное окно */}
       <div style={{ marginBottom: '20px' }}>
         <h3>Модальное окно</h3>
@@ -177,7 +192,7 @@ export const App: React.FC = () => {
         </Modal>
       </div>
 
-      {/* Заголовки */}
+        {/* Заголовки */}
       <div style={{ marginBottom: '20px' }}>
         <Title as="h1">Заголовок</Title>
         <Title as="h2">Чередование цвета для списка кнопок</Title>
@@ -189,21 +204,14 @@ export const App: React.FC = () => {
         <ColorfulButtons />
       </div>
 
-      {/* ThemesButtons */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>ThemesButtons</h3>
-        <ThemesButtons
-          onThemeSelect={(theme: string) => handleThemeSelect(theme)}
-        />
-      </div>
 
-      {/* ButtonThemes */}
+          {/* ButtonThemes */}
       <div style={{ marginBottom: '20px' }}>
         <h3>ButtonThemes</h3>
         <ButtonThemes />
       </div>
 
-      {/* Close buttons */}
+         {/* Close buttons */}
       <div style={{ marginBottom: '20px' }}>
         <h3>CloseButton (Закрытие)</h3>
         <CloseButton
@@ -212,7 +220,8 @@ export const App: React.FC = () => {
         />
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
+
+          <div style={{ marginBottom: '20px' }}>
         <h3>CloseButton (Выход)</h3>
         <CloseButton
           actionType="exit"
@@ -236,10 +245,16 @@ export const App: React.FC = () => {
         ))}
       </div>
 
-      {/* Кнопка для отправки данных */}
-      <div style={{ marginTop: '40px' }}>
-        <Button onClick={handleSendData}>Отправить данные</Button>
-      </div>
+      {/* Модальное окно */}
+      <Modal isOpen={isModalOpen} modalType="option" onClose={() => setIsModalOpen(false)}>
+        {/* Тут можно разместить содержимое модалки */}
+        <CloseButton onClick={() => setIsModalOpen(false)} />
+        <h2>Модальное окно</h2>
+        {/* Например, можно разместить сюда форму или другую логику */}
+      </Modal>
+      
+    
+      
     </div>
   );
 };
