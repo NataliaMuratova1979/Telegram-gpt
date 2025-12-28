@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Title } from './shared/ui/Title';
-import { Button } from './shared/ui/Button';
-import ColorDivs from './shared/ui/ColorDivs';
-import ColorfulButtons from './shared/ui/ColorfulButtons';
-import ThemesButtons from './shared/ui/ThemesButtons';
-import './app/styles/index.css';
-import { CloseButton } from './shared/ui/CloseButton';
-import ButtonThemes from './api/mockExample';
-import Modal from './shared/ui/Modal';
-import CheckBox from './shared/ui/CheckBox';
-import RadioBox from './shared/ui/RadioBox';
-import { getWords } from './api/mockApi';
-import { IWord } from './api/types';
+// Импорт необходимых библиотек и компонентов
+import React, { useState, useEffect } from 'react'; // React и хуки state, effect
+import { Title } from './shared/ui/Title'; // Заголовки
+import { Button } from './shared/ui/Button'; // Кнопка
+import ColorDivs from './shared/ui/ColorDivs'; // Компонент для цветных блоков (не используется в основном коде)
+import ColorfulButtons from './shared/ui/ColorfulButtons'; // Компонент для цветных кнопок (не используется)
+import ThemesButtons from './shared/ui/ThemesButtons'; // Кнопки выбора темы
+import './app/styles/index.css'; // Общие стили
+import { CloseButton } from './shared/ui/CloseButton'; // Кнопка закрытия
+import ButtonThemes from './api/mockExample'; // Импорт mock данных (не используется в основном коде)
+import Modal from './shared/ui/Modal'; // Модальное окно
+import CheckBox from './shared/ui/CheckBox'; // Компонент чекбоксов
+import RadioBox from './shared/ui/RadioBox'; // Компонент радиобоксов
+import { getWords } from './api/mockApi'; // API функция для получения слов
+import { IWord } from './api/types'; // Тип данных для слова
 import {
   handleCheckboxChange,
   handleRadioChange,
@@ -20,91 +21,100 @@ import {
   initialState,
   WordCount,
   handleSendData
-} from './shared/handlers/handlers'; 
+} from './shared/handlers/handlers'; // Обработчики и типы
 
+// Основной компонент приложения
 export const App: React.FC = () =>  {
-  // Начальные данные формы
-const [formData, setFormData] = useState<MyFormData>(initialState);
 
-   const [words, setWords] = useState<IWord[]>([]); // слова для отображения
-  const [isModalOpen, setIsModalOpen] = useState(false); // управление модальным
+  // Инициализация стейта для формы
+  const [formData, setFormData] = useState<MyFormData>(initialState);
+
+  // Стейт для списка слов, которые получим
+  const [words, setWords] = useState<IWord[]>([]);
+
+  // Стейт для управления отображением модального окна
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Стейт для выбранной темы
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null); // выбранная тема
-  const [radioValue, setRadioValue] = useState<string>('option1'); // радиобокс
+
+  // Стейт для выбранной темы (topic)
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  // Стейт для значения радиобокса
+  const [radioValue, setRadioValue] = useState<string>('option1');
+
+  // Варианты для кнопок — создание массива из 20 элементов
   const buttonsData = Array.from({ length: 20 }, (_, i) => ({ label: `Кнопка ${i + 1}` }));
+
+  // Стейт для выбранных длин слов (массива)
   const [selectedLengths, setSelectedLengths] = React.useState<string[]>([]);
 
-  const [count, setCount] = useState<WordCount>('Много'); // Изначально выбран "много"
+  // Стейт для числа слов (варианта "Много" по умолчанию)
+  const [count, setCount] = useState<WordCount>('Много');
 
-
+  // useEffect, логирующий слова когда они меняются
   useEffect(() => {
     if (words.length > 0) {
       console.log('Отображены слова:', words);
     }
   }, [words]);
 
-const handleThemeSelect = (
-  theme: string,
-  setFormData: React.Dispatch<React.SetStateAction<MyFormData>>,
-  setSelectedTopic: React.Dispatch<React.SetStateAction<string | null>>,
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-  // Обновляем выбранную тему
-  setSelectedTopic(theme);
-  // Обновляем formData, присваивая теме значение
-  setFormData(prev => ({ ...prev, topic: theme }));
-  // Открываем модальное окно или выполнять другие действия
-  setIsModalOpen(true);
-};
+  // Обработчик выбора темы
+  const handleThemeSelect = (
+    theme: string,
+    setFormData: React.Dispatch<React.SetStateAction<MyFormData>>,
+    setSelectedTopic: React.Dispatch<React.SetStateAction<string | null>>,
+    setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    // Обновляем выбранную тему
+    setSelectedTopic(theme);
+    // Обновляем formData, присваивая тему
+    setFormData(prev => ({ ...prev, topic: theme }));
+    // Открываем модальное окно
+    setIsModalOpen(true);
+  };
 
-const handleCheckbox = (field: string, checked: boolean) => {
-  setFormData(prev => {
-    let newSelected = [...prev.selectedLength];
-    const label = field === 'lengthShort' ? 'Короткое' :
-                  field === 'lengthMedium' ? 'Среднее' :
-                  'Длинное';
+  // Обработчик чекбоксов по длине слова
+  const handleCheckbox = (field: string, checked: boolean) => {
+    setFormData(prev => {
+      let newSelected = [...prev.selectedLength];
+      const label = field === 'lengthShort' ? 'Короткое' :
+                    field === 'lengthMedium' ? 'Среднее' :
+                    'Длинное';
 
-    if (checked) {
-      if (!newSelected.includes(label)) {
-        newSelected.push(label);
+      if (checked) {
+        if (!newSelected.includes(label)) {
+          newSelected.push(label); // добавляем, если не было
+        }
+      } else {
+        newSelected = newSelected.filter(item => item !== label); // удаляем
       }
-    } else {
-      newSelected = newSelected.filter(item => item !== label);
-    }
 
-    return { ...prev, [field]: checked, selectedLength: newSelected };
-  });
-};
+      return { ...prev, [field]: checked, selectedLength: newSelected };
+    });
+  };
 
   // Обработчик радиобокса
   const handleRadio = (value: string) => {
-    setRadioValue(value);
-    handleRadioChange(setFormData)(value);
+    setRadioValue(value); // обновляем выбранное значение радиобокса
+    handleRadioChange(setFormData)(value); // вызываем обработчик (он, возможно, тоже обновляет formData)
   };
 
-
-
-// Объявляем функцию, которая возвращает допустимую метку
-const getSelectedLengthLabel = (): LengthLabel => {
-  if (formData.lengthShort) return 'короткое';
-  if (formData.lengthMedium) return 'среднее';
-  if (formData.lengthLong) return 'длинное';
-  return null; // вместо ''
-};
-
-const handleClickSend = () => {
-    // Убедимся, что topic из formData
-    const topic = formData.topic; // Или другой способ получения темы
-    // В зависимости от выбранных длины и count
+  // Обработка нажатия кнопки "Отправить"
+  const handleClickSend = () => {
+    const topic = formData.topic; // получаем текущую тему из формы
+    // если есть выбранные длины, используем их, иначе 'все'
     const lengthFilter = selectedLengths.length > 0 ? selectedLengths : 'все';
 
+    // вызов API для получения слов
     getWords(topic, formData.selectedLength, count)
       .then((words) => {
         console.log('Полученные слова:', words);
         if (words.length === 0) {
           alert('Тема не найдена или слова отсутствуют для выбранных условий.');
         }
-        setWords(words);
+        setWords(words); // сохраняем слова в стейт
       })
       .catch((error) => {
         console.error('Ошибка при получении слов:', error);
@@ -112,16 +122,10 @@ const handleClickSend = () => {
       });
   };
 
+  // Логирование текущих значений для debug
   console.log('topic:', formData.topic);
-console.log('lengths:', selectedLengths);
-console.log('count:', count);
-
-  // Логирование слов
-  useEffect(() => {
-    if (words.length > 0) {
-      console.log('Отображены слова:', words);
-    }
-  }, [words]);
+  console.log('lengths:', selectedLengths);
+  console.log('count:', count);
 
   return (
     <div style={{ padding: 20 }}>
@@ -290,18 +294,7 @@ console.log('count:', count);
         <Title as="h2">Чередование цвета для списка кнопок</Title>
       </div>
 
-      {/* Цветные кнопки */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Цветные кнопки</h3>
-        <ColorfulButtons />
-      </div>
-
-
-          {/* ButtonThemes */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>ButtonThemes</h3>
-        <ButtonThemes />
-      </div>
+    
 
          {/* Close buttons */}
       <div style={{ marginBottom: '20px' }}>
@@ -321,22 +314,7 @@ console.log('count:', count);
         />
       </div>
 
-      {/* Генерация 20 кнопок */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Генерация 20 кнопок</h3>
-        {buttonsData.map((btn, idx) => (
-          <Button
-            key={idx}
-            type="colorful"
-            index={idx}
-            style={{ marginRight: 10, marginBottom: 10 }}
-            onClick={() => console.log(`Пользователь выбрал тему "${btn.label}"`)}
-          >
-            {btn.label}
-          </Button>
-        ))}
-      </div>
-
+     
       {/* Модальное окно */}
       <Modal isOpen={isModalOpen} modalType="option" onClose={() => setIsModalOpen(false)}>
         {/* Тут можно разместить содержимое модалки */}
