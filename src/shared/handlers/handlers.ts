@@ -1,35 +1,32 @@
 import { SetStateAction } from 'react';
 
-interface MyFormData {
-  theme: string | null;
+export interface MyFormData {
+  topic: string;
   agree: boolean;
   option: string;
   lengthShort: boolean;
   lengthMedium: boolean;
   lengthLong: boolean;
+  selectedLength?: string; // опциональное поле, если нужно
 }
 
-// Обработчик выбора темы
-export const handleThemeSelect = (
-  theme: string,
-  setFormData: React.Dispatch<React.SetStateAction<MyFormData>>,
-  setSelectedTheme: React.Dispatch<React.SetStateAction<string | null>>,
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-  return () => {
-    setFormData((prev) => ({ ...prev, theme }));
-    console.log('Тема в форме обновлена:', theme);
-    setSelectedTheme(theme);
-    setIsModalOpen(true);
-  };
+export const initialState: MyFormData = {
+  topic: '',
+  agree: false,
+  option: '',
+  lengthShort: false,
+  lengthMedium: false,
+  lengthLong: false,
 };
+export type WordCount = 'Немного' | 'Много' | 'Все';
+
 
 // Обработчик чекбокса согласия
 export const handleCheckboxChange = (
   setFormData: React.Dispatch<React.SetStateAction<MyFormData>>
 ) => {
   return (value: boolean) => {
-    setFormData((prev) => ({ ...prev, agree: value }));
+    setFormData(prev => ({ ...prev, agree: value }));
     console.log('Чекбокс отмечен:', value);
   };
 };
@@ -39,78 +36,108 @@ export const handleRadioChange = (
   setFormData: React.Dispatch<React.SetStateAction<MyFormData>>
 ) => {
   return (value: string) => {
-    setFormData((prev) => ({ ...prev, option: value }));
+    setFormData(prev => ({ ...prev, option: value }));
     console.log('Выбрана опция радиобокса:', value);
   };
 };
 
-// Тип для допустимых значений длины
-type LengthLabel = '' | 'короткое' | 'среднее' | 'длинное';
+export type LengthLabel = 'короткое' | 'среднее' | 'длинное' | null;
 
-// Функция для преобразования выбранной метки в допустимый тип
-const parseLengthLabel = (label: string): LengthLabel => {
-  if (
-    label === 'короткое' ||
-    label === 'среднее' ||
-    label === 'длинное'
-  ) {
-    return label;
-  }
-  return '';
-};
-
-// Параметры для функции отправки данных
-interface HandleSendDataParams {
-  formData: MyFormData;
-  setWords: React.Dispatch<React.SetStateAction<any[]>>;
-  getWords: (
-    theme: string,
-    length: LengthLabel,
-    count: number | 'Много'
-  ) => Promise<{ word: string }[]>;
-  selectedLengthLabel: string; // выбранная длина слова в UI
+function getLengthLabel(word: string): LengthLabel {
+  const length = word.length;
+  if (length < 5) return 'короткое';
+  else if (length >= 5 && length <= 8) return 'среднее';
+  else return 'длинное';
 }
 
-// Функция отправки данных
+// Эта функция нужна при преобразовании строки в метку, например, если получаете строку из UI
+function parseLengthLabel(label: string): LengthLabel {
+  console.log('parseLengthLabel получил:', label);
+  switch (label) {
+    case 'короткое':
+    case 'среднее':
+    case 'длинное':
+      return label;
+    default:
+      throw new Error('Неизвестная метка длины');
+  }
+}
+
+type GetWordsFunction = (
+  theme: string,
+  length: LengthLabel[] | 'все', // допускаем массив или строку
+  count: number | 'Много'
+) => Promise<{ word: string }[]>;
+
+interface LengthSelections {
+  lengthShort: boolean;
+  lengthMedium: boolean;
+  lengthLong: boolean;
+}
+
+interface HandleSendDataProps {
+  theme: string | null;
+  radioValue: string; // «немного», «много», «все»
+  lengthSelections: LengthSelections; // состояние чекбоксов
+  setWords: React.Dispatch<React.SetStateAction<any[]>>;
+  getWords: GetWordsFunction;
+}
+
+// Основная функция отправки данных
 export const handleSendData = async ({
-  formData,
+  theme,
+  radioValue,
+  lengthSelections,
   setWords,
   getWords,
-  selectedLengthLabel,
-}: HandleSendDataParams) => {
-  const theme = formData.theme;
-
+}: HandleSendDataProps) => {
   if (!theme) {
     alert('Пожалуйста, выберите тему');
     return;
   }
 
-  // Примерно определяете количество слов
-  const count: number | 'Много' = 10; // Или логика по вашему
+  // Варианты количества слов
+  let count: number | 'Много';
+  switch (radioValue) {
+    case 'немного':
+      count = 5;
+      break;
+    case 'много':
+      count = 12;
+      break;
+    case 'все':
+      count = 'Много';
+      break;
+    default:
+      count = 10;
+  }
 
-  const length: LengthLabel = parseLengthLabel(selectedLengthLabel);
+  // Собираем выбранные метки
+  const { lengthShort, lengthMedium, lengthLong } = lengthSelections;
+  const selectedLengths: LengthLabel[] = [];
+  if (lengthShort) selectedLengths.push('короткое');
+  if (lengthMedium) selectedLengths.push('среднее');
+  if (lengthLong) selectedLengths.push('длинное');
 
   try {
-    const results = await getWords(theme, length, count);
-    
-    // Фильтрация по длине слова
-    const mapLengthToFilter = (label: LengthLabel) => {
-      switch (label) {
-        case 'короткое':
-          return (w: { word: string }) => w.word.length < 5;
-        case 'среднее':
-          return (w: { word: string }) => w.word.length >= 5 && w.word.length <= 8;
-        case 'длинное':
-          return (w: { word: string }) => w.word.length > 8;
-        default:
-          return () => true;
-      }
-    };
+    // Вызов функции getWords
+    const results = await getWords(theme, selectedLengths.length > 0 ? selectedLengths : 'все', count);
 
-    const lengthFilter = mapLengthToFilter(length);
-    const filteredWords = results.filter(lengthFilter);
-    setWords(filteredWords);
+    // Фильтрация результатов по длине, если выбраны метки
+    let filteredResults = results;
+    if (selectedLengths.length > 0) {
+      filteredResults = results.filter((wordObj) => {
+        const wordLen = wordObj.word.length;
+        return selectedLengths.some((label) => {
+          if (label === 'короткое') return wordLen < 5;
+          if (label === 'среднее') return wordLen >= 5 && wordLen <= 8;
+          if (label === 'длинное') return wordLen > 8;
+        });
+      });
+    }
+
+    setWords(filteredResults);
   } catch (error) {
-    console.error('Ошибка при получении слов:', error);
+    console.error('Ошибка получения слов:', error);
   }
 };

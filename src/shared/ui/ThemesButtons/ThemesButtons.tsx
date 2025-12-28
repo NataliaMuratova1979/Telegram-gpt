@@ -10,12 +10,18 @@ const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => {
   const [themes, setThemes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
 
+  // Загрузка тем
   useEffect(() => {
-    getTopics().then((topics) => {
-      setThemes(topics.map(t => t.topic));
-    });
+    getTopics()
+      .then((topics) => {
+        setThemes(topics.map(t => t.topic));
+      })
+      .catch((error) => {
+        console.error('Ошибка при загрузке тем:', error);
+      });
   }, []);
 
+  // Получение цветов
   useEffect(() => {
     const colorVars = [
       '--tag-color-pale-1',
@@ -29,12 +35,16 @@ const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => {
     setColors(retrievedColors);
   }, []);
 
+  if (themes.length === 0) {
+    return null; // Можно показать спиннер или сообщение об ожидании
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
         {themes.map((theme, i) => (
           <Button
-            key={i}
+            key={theme}
             purpose="select-option"
             type="colorful"
             index={i}
@@ -45,7 +55,8 @@ const ThemesButtons: React.FC<ThemesButtonsProps> = ({ onThemeSelect }) => {
               color: 'black',
             }}
             onClick={() => {
-              onThemeSelect(theme);
+              console.log('Выбрана тема:', theme); // Вывод темы в консоль
+              onThemeSelect(theme); // Передача темы родителю
             }}
           >
             {theme}

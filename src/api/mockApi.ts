@@ -12,48 +12,67 @@ export const getTopics = (): Promise<ITopic[]> =>
   });
 
 /**
+ * Типы для фильтрации по длине слова и количеству
+ */
+export type LengthLabel = 'короткое' | 'среднее' | 'длинное' | null;
+export type WordCount = 'Немного' | 'Много' | 'Все';
+
+const defaultSelectedLabels: string[] = ['короткое', 'среднее', 'длинное'];
+
+/**
  * Получить слова по теме и фильтрам
  * @param topic - название темы
- * @param length - длина слова или пустая строка для любых ('', 'короткое', 'среднее', 'длинное')
- * @param count - кол-во слов (5, 10, 'Много')
+ * @param lengthLabels - массив выбранных чекбоксов (меток) или 'все'
+ * @param count - кол-во слов (например, 5, 10, 'Много')
  */
-
-type LengthLabel = '' | 'короткое' | 'среднее' | 'длинное' | null;
-type WordCount = number | 'Много';
-
 export const getWords = (
   topic: string,
-  length: LengthLabel,
+  lengthLabels: string[] | 'все',
   count: WordCount
-): Promise<IWord[]> =>
-  new Promise((resolve) => {
+): Promise<IWord[]> => {
+  console.log('Вызов getWords с параметрами:', { topic, lengthLabels, count });
+  return new Promise((resolve) => {
     setTimeout(() => {
-      const topicObj = data.find(t => t.topic === topic);
+      const topicObj = data.find((t) => t.topic === topic);
+      console.log('Нашли тему:', topicObj);
       if (!topicObj) {
+        console.log('Тема не найдена, возвращаю пустой массив');
         resolve([]);
         return;
       }
+      
+      let filteredWords = [...topicObj.words];
+      console.log('Изначальные слова:', filteredWords);
 
-      // Фильтрация по длине
-      let filtered = topicObj.words;
-      if (length) {
-        // используем функцию для определения длины слова
-        const lengthRules = {
+      if (lengthLabels !== 'все') {
+        const lengthRules: Record<string, (w: string) => boolean> = {
           "короткое": (w: string) => w.length < 5,
           "среднее": (w: string) => w.length >= 5 && w.length <= 8,
           "длинное": (w: string) => w.length > 8,
         };
-        const ruleFn = lengthRules[length];
-        filtered = filtered.filter(w => ruleFn(w.word));
+
+        console.log('Перед фильтрацией по длине:', [...filteredWords]);
+
+        filteredWords = filteredWords.filter(w =>
+          lengthLabels.some(label => {
+            const rule = lengthRules[label];
+            const lengthMatch = rule(w.word);
+            console.log(`Проверка слова "${w.word}" на правило "${label}": ${lengthMatch}`);
+            return lengthMatch;
+          })
+        );
+
+        console.log('После фильтрации по длине:', [...filteredWords]);
       }
 
-      // Обработка варианта количества слов
       if (count === 'Много') {
-        resolve([...filtered]);
+        resolve(filteredWords);
       } else {
-        const n = count; // 5 или 10
-        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+        const n = typeof count === 'number' ? count : 0;
+        const shuffled = [...filteredWords].sort(() => Math.random() - 0.5);
+        console.log(`Выбираю ${n} случайных слова из`, shuffled);
         resolve(shuffled.slice(0, n));
       }
     }, 400);
   });
+};

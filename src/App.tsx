@@ -13,40 +13,49 @@ import RadioBox from './shared/ui/RadioBox';
 import { getWords } from './api/mockApi';
 import { IWord } from './api/types';
 import {
-  handleThemeSelect,
   handleCheckboxChange,
   handleRadioChange,
-  handleSendData,
-} from './shared/handlers/handlers';
+  MyFormData,
+  LengthLabel,
+  initialState,
+  WordCount,
+  handleSendData
+} from './shared/handlers/handlers'; 
 
-export const App: React.FC = () => {
+export const App: React.FC = () =>  {
   // Начальные данные формы
-  const [formData, setFormData] = useState<{
-    theme: string | null;
-    agree: boolean;
-    option: string;
-    lengthShort: boolean;
-    lengthMedium: boolean;
-    lengthLong: boolean;
-  }>({
-    theme: null,
-    agree: false,
-    option: 'option1',
-    lengthShort: false,
-    lengthMedium: false,
-    lengthLong: false,
-  });
+const [formData, setFormData] = useState<MyFormData>(initialState);
 
-  const [words, setWords] = useState<IWord[]>([]); // слова для отображения
+   const [words, setWords] = useState<IWord[]>([]); // слова для отображения
   const [isModalOpen, setIsModalOpen] = useState(false); // управление модальным
-  const [selectedTheme, setSelectedTheme] = useState<string | null>(null); // выбранная тема
+  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null); // выбранная тема
   const [radioValue, setRadioValue] = useState<string>('option1'); // радиобокс
   const buttonsData = Array.from({ length: 20 }, (_, i) => ({ label: `Кнопка ${i + 1}` }));
+  const [selectedLengths, setSelectedLengths] = React.useState<string[]>([]);
 
-  // Выбор темы
-  const onThemeSelect = (theme: string) => {
-    handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)();
-  };
+  const [count, setCount] = useState<WordCount>('Много'); // Изначально выбран "много"
+
+
+  useEffect(() => {
+    if (words.length > 0) {
+      console.log('Отображены слова:', words);
+    }
+  }, [words]);
+
+const handleThemeSelect = (
+  theme: string,
+  setFormData: React.Dispatch<React.SetStateAction<MyFormData>>,
+  setSelectedTopic: React.Dispatch<React.SetStateAction<string | null>>,
+  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  // Обновляем выбранную тему
+  setSelectedTopic(theme);
+  // Обновляем formData, присваивая теме значение
+  setFormData(prev => ({ ...prev, topic: theme }));
+  // Открываем модальное окно или выполнять другие действия
+  setIsModalOpen(true);
+};
 
   // Обработчик чекбоксов
   const handleCheckbox = (field: keyof typeof formData, value: boolean) => {
@@ -59,24 +68,39 @@ export const App: React.FC = () => {
     handleRadioChange(setFormData)(value);
   };
 
-  // Получение метки для фильтрации
-  const getSelectedLengthLabel = () => {
-    const { lengthShort, lengthMedium, lengthLong } = formData;
-    if (lengthShort && !lengthMedium && !lengthLong) return 'короткое';
-    if (!lengthShort && lengthMedium && !lengthLong) return 'среднее';
-    if (!lengthShort && !lengthMedium && lengthLong) return 'длинное';
-    return 'все';
+
+
+// Объявляем функцию, которая возвращает допустимую метку
+const getSelectedLengthLabel = (): LengthLabel => {
+  if (formData.lengthShort) return 'короткое';
+  if (formData.lengthMedium) return 'среднее';
+  if (formData.lengthLong) return 'длинное';
+  return null; // вместо ''
+};
+
+const handleClickSend = () => {
+    // Убедимся, что topic из formData
+    const topic = formData.topic; // Или другой способ получения темы
+    // В зависимости от выбранных длины и count
+    const lengthFilter = selectedLengths.length > 0 ? selectedLengths : 'все';
+
+    getWords(topic, lengthFilter, count)
+      .then((words) => {
+        console.log('Полученные слова:', words);
+        if (words.length === 0) {
+          alert('Тема не найдена или слова отсутствуют для выбранных условий.');
+        }
+        setWords(words);
+      })
+      .catch((error) => {
+        console.error('Ошибка при получении слов:', error);
+        alert('Произошла ошибка при запросе к серверу.');
+      });
   };
 
-  // Обработка отправки
-  const handleClickSend = () => {
-    handleSendData({
-      formData,
-      setWords,
-      getWords,
-      selectedLengthLabel: getSelectedLengthLabel(),
-    });
-  };
+  console.log('topic:', formData.topic);
+console.log('lengths:', selectedLengths);
+console.log('count:', count);
 
   // Логирование слов
   useEffect(() => {
@@ -91,11 +115,11 @@ export const App: React.FC = () => {
          {/* ThemesButtons */}
       <div style={{ marginBottom: '20px' }}>
         <h3>ThemesButtons</h3>
-        <ThemesButtons
-           onThemeSelect={(theme) =>
-    handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)()
+  <ThemesButtons
+  onThemeSelect={(theme) =>
+    handleThemeSelect(theme, setFormData, setSelectedTopic, setIsModalOpen)
   }
-        />
+/>
       </div>
 
       {/* Кнопка открытия модального */}
@@ -105,39 +129,67 @@ export const App: React.FC = () => {
       </div>
 
       {/* Радиобокс */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Выберите опцию:</h3>
-        <RadioBox
-          options={[
-            { label: 'Опция 1', value: 'option1' },
-            { label: 'Опция 2', value: 'option2' },
-            { label: 'Опция 3', value: 'option3' },
-          ]}
-          selectedValue={radioValue}
-          onChange={handleRadio}
-          name="sampleRadio"
-          disabled={false}
-        />
-      </div>
+<div style={{ marginBottom: '20px' }}>
+  <h3>Выберите опцию:</h3>
+  <RadioBox
+    options={[
+      { label: 'немного', value: 'немного' },
+      { label: 'много', value: 'много' },
+      { label: 'все', value: 'все' },
+    ]}
+    selectedValue={radioValue}
+    onChange={handleRadio}
+    name="sampleRadio"
+    disabled={false}
+  />
+</div>
 
       {/* Выбор по длине */}
       <div style={{ marginBottom: '20px' }}>
         <h4>Выберите длину слов:</h4>
         <CheckBox
-          label="Короткие"
-          checked={formData.lengthShort}
-          onChange={(value: boolean) => handleCheckbox('lengthShort', value)}
-        />
-        <CheckBox
-          label="Средние"
-          checked={formData.lengthMedium}
-          onChange={(value: boolean) => handleCheckbox('lengthMedium', value)}
-        />
-        <CheckBox
-          label="Длинные"
-          checked={formData.lengthLong}
-          onChange={(value: boolean) => handleCheckbox('lengthLong', value)}
-        />
+  label="Короткие"
+  checked={formData.lengthShort}
+  onChange={(value: boolean) => {
+    handleCheckbox('lengthShort', value);
+    if (value) {
+      setFormData(prev => ({ ...prev, selectedLength: 'Короткое' }));
+    } else if (formData.lengthMedium || formData.lengthLong) {
+      // если другие чекбоксы выбраны, можно оставить выбранное значение
+    } else {
+      setFormData(prev => ({ ...prev, selectedLength: undefined }));
+    }
+  }}
+/>
+<CheckBox
+  label="Средние"
+  checked={formData.lengthMedium}
+  onChange={(value: boolean) => {
+    handleCheckbox('lengthMedium', value);
+    if (value) {
+      setFormData(prev => ({ ...prev, selectedLength: 'Среднее' }));
+    } else if (formData.lengthShort || formData.lengthLong) {
+      // оставить предыдущие выбранные
+    } else {
+      setFormData(prev => ({ ...prev, selectedLength: undefined }));
+    }
+  }}
+/>
+
+<CheckBox
+  label="Длинные"
+  checked={formData.lengthLong}
+  onChange={(value: boolean) => {
+    handleCheckbox('lengthLong', value);
+    if (value) {
+      setFormData(prev => ({ ...prev, selectedLength: 'Длинное' }));
+    } else if (formData.lengthShort || formData.lengthMedium) {
+      // оставить предыдущие
+    } else {
+      setFormData(prev => ({ ...prev, selectedLength: undefined }));
+    }
+  }}
+/>
 
         {/* Кнопка отправки */}
         <div style={{ marginTop: '40px' }}>
@@ -166,15 +218,17 @@ export const App: React.FC = () => {
           title="Тема выбрана"
           modalType="option"
         >
-          <p>Вы выбрали тему: {selectedTheme}</p>
+          <p>Вы выбрали тему: {selectedTopic}</p>
         </Modal>
       </div>
 
             {/* ThemesButtons */}
       <div style={{ marginBottom: '20px' }}>
         <h3>ThemesButtons</h3>
-        <ThemesButtons
-  onThemeSelect={(theme) => handleThemeSelect(theme, setFormData, setSelectedTheme, setIsModalOpen)}
+<ThemesButtons
+  onThemeSelect={(theme) =>
+    handleThemeSelect(theme, setFormData, setSelectedTopic, setIsModalOpen)
+  }
 />
       </div>
       
@@ -188,7 +242,7 @@ export const App: React.FC = () => {
           title="Тема выбрана"
           modalType="option"
         >
-          <p>Вы выбрали тему: {selectedTheme}</p>
+          <p>Вы выбрали тему: {selectedTopic}</p>
         </Modal>
       </div>
 
