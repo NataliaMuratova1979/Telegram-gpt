@@ -7,7 +7,7 @@ export interface MyFormData {
   lengthShort: boolean;
   lengthMedium: boolean;
   lengthLong: boolean;
-  selectedLength?: string; // опциональное поле, если нужно
+  selectedLength: string[]; // опциональное поле, если нужно
 }
 
 export const initialState: MyFormData = {
@@ -17,6 +17,7 @@ export const initialState: MyFormData = {
   lengthShort: false,
   lengthMedium: false,
   lengthLong: false,
+  selectedLength: []
 };
 export type WordCount = 'Немного' | 'Много' | 'Все';
 
@@ -83,7 +84,7 @@ interface HandleSendDataProps {
   getWords: GetWordsFunction;
 }
 
-// Основная функция отправки данных
+// Ваша функция handleSendData
 export const handleSendData = async ({
   theme,
   radioValue,
@@ -96,7 +97,7 @@ export const handleSendData = async ({
     return;
   }
 
-  // Варианты количества слов
+  // Определение количества слов
   let count: number | 'Много';
   switch (radioValue) {
     case 'немного':
@@ -112,7 +113,6 @@ export const handleSendData = async ({
       count = 10;
   }
 
-  // Собираем выбранные метки
   const { lengthShort, lengthMedium, lengthLong } = lengthSelections;
   const selectedLengths: LengthLabel[] = [];
   if (lengthShort) selectedLengths.push('короткое');
@@ -120,21 +120,24 @@ export const handleSendData = async ({
   if (lengthLong) selectedLengths.push('длинное');
 
   try {
-    // Вызов функции getWords
-    const results = await getWords(theme, selectedLengths.length > 0 ? selectedLengths : 'все', count);
+    // Получение слов с сервера по теме и меткам длин
+    const results = await getWords(
+      theme,
+      selectedLengths.length > 0 ? selectedLengths : 'все',
+      count
+    );
 
-    // Фильтрация результатов по длине, если выбраны метки
-    let filteredResults = results;
-    if (selectedLengths.length > 0) {
-      filteredResults = results.filter((wordObj) => {
-        const wordLen = wordObj.word.length;
-        return selectedLengths.some((label) => {
-          if (label === 'короткое') return wordLen < 5;
-          if (label === 'среднее') return wordLen >= 5 && wordLen <= 8;
-          if (label === 'длинное') return wordLen > 8;
-        });
-      });
-    }
+    // Фильтрация по длине, если выбраны метки
+    const filteredResults = selectedLengths.length
+      ? results.filter((wordObj) => {
+          const len = wordObj.word.length;
+          return selectedLengths.some((label) => {
+            if (label === 'короткое') return len < 5;
+            if (label === 'среднее') return len >= 5 && len <= 8;
+            if (label === 'длинное') return len > 8;
+          });
+        })
+      : results; // если нет меток, оставить все
 
     setWords(filteredResults);
   } catch (error) {

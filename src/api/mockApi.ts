@@ -3,6 +3,18 @@ import type { ITopic, IWord } from './types';
 
 const data = mockData as ITopic[];
 
+// Вставьте эту функцию где-то в начале файла или внутри модуля
+function filterWordsByLength(words: IWord[], selectedLabels: string[]): IWord[] {
+  return words.filter(w => {
+    const length = w.word.length;
+    const includeShort = selectedLabels.includes('Короткое') && length < 5;
+    const includeMedium = selectedLabels.includes('Среднее') && length >= 5 && length <= 8;
+    const includeLong = selectedLabels.includes('Длинное') && length > 8;
+
+    return includeShort || includeMedium || includeLong;
+  });
+}
+
 /**
  * Получить список всех тем
  */
@@ -34,37 +46,22 @@ export const getWords = (
   return new Promise((resolve) => {
     setTimeout(() => {
       const topicObj = data.find((t) => t.topic === topic);
-      console.log('Нашли тему:', topicObj);
       if (!topicObj) {
         console.log('Тема не найдена, возвращаю пустой массив');
         resolve([]);
         return;
       }
-      
+
       let filteredWords = [...topicObj.words];
       console.log('Изначальные слова:', filteredWords);
 
+      // Интеграция фильтрации по длине через функцию
       if (lengthLabels !== 'все') {
-        const lengthRules: Record<string, (w: string) => boolean> = {
-          "короткое": (w: string) => w.length < 5,
-          "среднее": (w: string) => w.length >= 5 && w.length <= 8,
-          "длинное": (w: string) => w.length > 8,
-        };
-
-        console.log('Перед фильтрацией по длине:', [...filteredWords]);
-
-        filteredWords = filteredWords.filter(w =>
-          lengthLabels.some(label => {
-            const rule = lengthRules[label];
-            const lengthMatch = rule(w.word);
-            console.log(`Проверка слова "${w.word}" на правило "${label}": ${lengthMatch}`);
-            return lengthMatch;
-          })
-        );
-
-        console.log('После фильтрации по длине:', [...filteredWords]);
+        filteredWords = filterWordsByLength(filteredWords, lengthLabels);
+        console.log('После фильтрации по длине:', filteredWords);
       }
 
+      // Обработка по количеству
       if (count === 'Много') {
         resolve(filteredWords);
       } else {

@@ -57,10 +57,24 @@ const handleThemeSelect = (
   setIsModalOpen(true);
 };
 
-  // Обработчик чекбоксов
-  const handleCheckbox = (field: keyof typeof formData, value: boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+const handleCheckbox = (field: string, checked: boolean) => {
+  setFormData(prev => {
+    let newSelected = [...prev.selectedLength];
+    const label = field === 'lengthShort' ? 'Короткое' :
+                  field === 'lengthMedium' ? 'Среднее' :
+                  'Длинное';
+
+    if (checked) {
+      if (!newSelected.includes(label)) {
+        newSelected.push(label);
+      }
+    } else {
+      newSelected = newSelected.filter(item => item !== label);
+    }
+
+    return { ...prev, [field]: checked, selectedLength: newSelected };
+  });
+};
 
   // Обработчик радиобокса
   const handleRadio = (value: string) => {
@@ -84,7 +98,7 @@ const handleClickSend = () => {
     // В зависимости от выбранных длины и count
     const lengthFilter = selectedLengths.length > 0 ? selectedLengths : 'все';
 
-    getWords(topic, lengthFilter, count)
+    getWords(topic, formData.selectedLength, count)
       .then((words) => {
         console.log('Полученные слова:', words);
         if (words.length === 0) {
@@ -151,45 +165,69 @@ console.log('count:', count);
   label="Короткие"
   checked={formData.lengthShort}
   onChange={(value: boolean) => {
-    handleCheckbox('lengthShort', value);
-    if (value) {
-      setFormData(prev => ({ ...prev, selectedLength: 'Короткое' }));
-    } else if (formData.lengthMedium || formData.lengthLong) {
-      // если другие чекбоксы выбраны, можно оставить выбранное значение
-    } else {
-      setFormData(prev => ({ ...prev, selectedLength: undefined }));
-    }
+     handleCheckbox('lengthShort', value);
+    setFormData(prev => {
+      let newSelected = [...prev.selectedLength];
+      if (value) {
+        // добавляем элемент
+        if (!newSelected.includes('Короткое')) {
+          newSelected.push('Короткое');
+        }
+      } else {
+        // удаляем элемент
+        newSelected = newSelected.filter(item => item !== 'Короткое');
+      }
+      return { ...prev, selectedLength: newSelected };
+    });
   }}
 />
+
 <CheckBox
   label="Средние"
   checked={formData.lengthMedium}
   onChange={(value: boolean) => {
-    handleCheckbox('lengthMedium', value);
-    if (value) {
-      setFormData(prev => ({ ...prev, selectedLength: 'Среднее' }));
-    } else if (formData.lengthShort || formData.lengthLong) {
-      // оставить предыдущие выбранные
-    } else {
-      setFormData(prev => ({ ...prev, selectedLength: undefined }));
-    }
+    
+ handleCheckbox('lengthMedium', value);
+    setFormData(prev => {
+      let newSelected = [...prev.selectedLength];
+      if (value) {
+        // добавляем элемент
+        if (!newSelected.includes('Среднее')) {
+          newSelected.push('Среднее');
+        }
+      } else {
+        // удаляем элемент
+        newSelected = newSelected.filter(item => item !== 'Среднее');
+      }
+      return { ...prev, selectedLength: newSelected };
+    });
   }}
 />
+
+
 
 <CheckBox
   label="Длинные"
   checked={formData.lengthLong}
   onChange={(value: boolean) => {
-    handleCheckbox('lengthLong', value);
-    if (value) {
-      setFormData(prev => ({ ...prev, selectedLength: 'Длинное' }));
-    } else if (formData.lengthShort || formData.lengthMedium) {
-      // оставить предыдущие
-    } else {
-      setFormData(prev => ({ ...prev, selectedLength: undefined }));
-    }
+    
+ handleCheckbox('lengthLong', value);
+    setFormData(prev => {
+      let newSelected = [...prev.selectedLength];
+      if (value) {
+        // добавляем элемент
+        if (!newSelected.includes('Длинное')) {
+          newSelected.push('Длинное');
+        }
+      } else {
+        // удаляем элемент
+        newSelected = newSelected.filter(item => item !== 'Длинноее');
+      }
+      return { ...prev, selectedLength: newSelected };
+    });
   }}
 />
+
 
         {/* Кнопка отправки */}
         <div style={{ marginTop: '40px' }}>
