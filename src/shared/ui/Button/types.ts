@@ -1,34 +1,15 @@
-// в Button.types.ts
-export type ButtonType =
-  // специальные типы для вашей задачи
-  | 'default' 
-  | 'colorful'
-  | 'start'
-  | 'answer-correct'
-  | 'answer-incorrect';
+// types.ts
 
-export type ButtonSize = 'small' | 'medium' | 'large';
+import React from 'react';
 
-export type ButtonHtmlType = 'button' | 'submit' | 'reset';
-
-export type ButtonPurpose =
-  | 'open-modal'
-  | 'select-option'
-  | 'submit'
-  | 'cancel'
-  | 'custom';
-
-export interface ButtonProps
-  extends Omit<React.HTMLProps<HTMLButtonElement>, 'type' | 'size'> {
-  type?: ButtonType;
-  size?: ButtonSize;
-  variant?: 'default' | 'start' | 'answer-correct' | 'answer-incorrect' | 'colorful'; // новые варианты
-  onClick?: (() => void) | ((e: React.SyntheticEvent) => void);
-  className?: string;
-  htmlType?: ButtonHtmlType;
-  fullWidth?: boolean;
-  fill?: string;
-  stroke?: string;
-  isCorrect?: boolean; // добавляем свойство
-  purpose?: ButtonPurpose;
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  onClick?: (e: React.SyntheticEvent<HTMLButtonElement>) => void;
+  children: React.ReactNode;
+  disabled?: boolean;
+  size?: 'small' | 'medium' | 'large' | string;
+  variant?: 'default' | 'outline' | 'text' | string;
+  style?: React.CSSProperties;
+  htmlType?: 'button' | 'submit' | 'reset'; // стандарт HTML
+  purpose?: string; // тип размечен как string, если нужно
+  index?: number;
 }

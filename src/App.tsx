@@ -233,15 +233,15 @@ export const App: React.FC = () => {
       <div style={{ marginBottom: '20px' }}>
         <h3>Генерация 20 кнопок</h3>
         {buttonsData.map((btn, idx) => (
-          <Button
-            key={idx}
-            type="colorful"
-            index={idx}
-            style={{ marginRight: 10, marginBottom: 10 }}
-            onClick={() => console.log(`Пользователь выбрал тему "${btn.label}"`)}
-          >
-            {btn.label}
-          </Button>
+        <Button
+    key={idx}
+    variant="colorful"
+    index={idx}
+    style={{ marginRight: 10, marginBottom: 10 }}
+    onClick={() => console.log(`Пользователь выбрал тему "${btn.label}"`)}
+  >
+    {btn.label}
+  </Button>
         ))}
       </div>
 
