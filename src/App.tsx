@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './app/styles/index.css';
 import { CloseButton } from './shared/ui/CloseButton';
-import CategoryButtons from './api/mockExample';
+import { CategoryButtons } from './components/CategoryButtons';
 import { IWord, ITopic } from './api/types';
 
 export const App: React.FC = () => {
