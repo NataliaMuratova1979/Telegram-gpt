@@ -1,71 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './app/styles/index.css';
 import { CloseButton } from './shared/ui/CloseButton';
 import { CategoryButtons } from './components/CategoryButtons';
 import { IWord, ITopic } from './api/types';
 
+import { handleCategorySelection } from './shared/handlers/handleCategorySelection';
+
 export const App: React.FC = () => {
-  const [words, setWords] = useState<IWord[]>([]); // слова для отображения
-  
-  // Для хранения данных выбранных категорий и тем
+  const [words, setWords] = useState<IWord[]>([]); // все слова
   const [selectedData, setSelectedData] = useState<{
     category: string | null;
     topics: ITopic[];
   } | null>(null);
 
-   // Обработка выбора категории и объединение слов с темой
-  const handleCategorySelection = (data: { category: string; topics: ITopic[] }) => {
-    console.log('--- Выбрана категория ---');
-    console.log('Категория:', data.category);
-    console.log('Темы:', data.topics);
+  const [selectedWords, setSelectedWords] = useState<IWord[]>([]); // выбранные слова
+  const [shuffledWords, setShuffledWords] = useState<IWord[]>([]); // случайный порядок слов
+  const [currentWordIndex, setCurrentWordIndex] = useState(0); // индекс текущего слова
 
-    setSelectedData(data);
-    console.log('Обновленное выбранное данные:', data);
-
-    // Объединение слов из тем: добавим тему к каждому слову
-    const allWords: IWord[] = data.topics.flatMap(topic =>
-      topic.words.map(word => ({
-        ...word,
-        topic: topic.topic, // добавляем поле topic к слову
-      }))
-    );
-    setWords(allWords);
-    console.log('Объединённые слова из тем:', allWords);
-
-    console.log('Все слова из выбранной категории:');
-    allWords.forEach((word, index) => {
-      console.log(`Слово ${index + 1}:`, word);
-    });
+  // Обработка выбора категории
+  const handleCategorySelectionWrapper = (data: { category: string; topics: ITopic[] }) => {
+    const newWords = handleCategorySelection(data, () => {}, () => {});
+    setSelectedWords(newWords);
+    // Перемешиваем все слова при выборе категории
+    const shuffled = shuffleArray(newWords);
+    setShuffledWords(shuffled);
+    setCurrentWordIndex(0); // начинаем с первого слова
   };
 
+  // Функция для показа следующего слова
+  const showNextWord = () => {
+    if (shuffledWords.length === 0) return;
+    setCurrentWordIndex(prev => (prev + 1) % shuffledWords.length);
+  };
 
-   // useEffect для логирования слов
-  useEffect(() => {
-    if (words.length > 0) {
-      console.log('Отображены слова:', words);
-    }
-  }, [words]);
+  // Текущее слово
+  const currentWord = shuffledWords.length > 0 ? shuffledWords[currentWordIndex] : null;
 
   return (
     <div style={{ padding: 20 }}>
-      {/* Категории */}
-      <div style={{ marginBottom: '20px' }}>
-        <h4>CategoryButtons, mockExample</h4>
-        <CategoryButtons onCategorySelect={handleCategorySelection} />
-        {/* Общие слова из выбранных тем */}
-        <div>
-          <h4>Общие слова из выбранных тем:</h4>
-          <ul>
-            {words.map((word, index) => (
-              <li key={index}>
-                <strong>{word.word}</strong> — тема: {word.topic}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <h4>Выберите категорию</h4>
+      <CategoryButtons onCategorySelect={handleCategorySelectionWrapper} />
 
-      {/* Close button */}
+      {/* Отображение текущего слова */}
+      {currentWord ? (
+        <div style={{ marginBottom: '20px' }}>
+          <h4>Текущее слово:</h4>
+          <p>
+            <strong>{currentWord.word}</strong> — тема: {currentWord.topic}
+          </p>
+          <button onClick={showNextWord}>Следующее слово</button>
+        </div>
+      ) : (
+        <p>Выберите категорию и дождитесь слов.</p>
+      )}
+
+      {/* Все выбранные слова */}
+      <h4>Общие слова из выбранных тем:</h4>
+      <ul>
+        {selectedWords.map((word, index) => (
+          <li key={index}>
+            <strong>{word.word}</strong> — тема: {word.topic}
+          </li>
+        ))}
+      </ul>
+
+      {/* Кнопка закрытия */}
       <div style={{ marginBottom: '20px' }}>
         <h3>CloseButton (Закрытие)</h3>
         <CloseButton
@@ -76,3 +75,15 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * Функция перетасовки массива с использованием алгоритма Фишера-Йейтса
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array]; // создаем копию, чтобы не мутировать исходник
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
