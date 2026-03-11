@@ -1,3 +1,4 @@
+/*
 export interface IWord {
   word: string;
   // добавьте по необходимости еще свойства
@@ -12,4 +13,10 @@ export interface ITopic {
 export interface ICategory {
   category: string;
   topics: ITopic[];
-}
+} */
+
+type IWordItem = { word: string };
+type ITopic = { topic: string; words: IWordItem[] };
+type ICategory = { category: string; topics: ITopic[] };
+
+const data: ICategory[] = [ /* ваши данные */ ];

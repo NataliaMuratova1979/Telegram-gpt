@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import App from './src/App';
+import { GameProvider } from './src/context/GameContext';
 
-import { App } from './src/App';
- // импорт из файла App.tsx
-
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <GameProvider>
+      <App />
+    </GameProvider>
+  </React.StrictMode>
 );
-
-root.render(<App />);

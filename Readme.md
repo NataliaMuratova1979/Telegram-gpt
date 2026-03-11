@@ -1,51 +1,67 @@
-my-telegram-app/
-├── public/                        // Статические файлы (иконки, изображения)
-│   └── index.html
-├── src/                           // Основная папка исходников
-│   ├── assets/                    // Медиа и стили (если есть)
-│   ├── components/                // Переиспользуемые компоненты
-│   │   ├── Button.jsx
-│   │   ├── Header.jsx
-│   │   ├── Footer.jsx
-│   │   └── ...                    // Другие компоненты
-│   ├── pages/                     // Страницы приложения
-│   │   ├── Home.jsx
-│   │   ├── Profile.jsx
-│   │   ├── Settings.jsx
-│   │   └── ...                    // Другие страницы
-│   ├── layouts/                   // Общие макеты (например, шапка и подвал)
-│   │   └── MainLayout.jsx
-│   ├── services/                  // Логика API, взаимодействие с Telegram API
-│   │   └── telegramApi.js
-│   ├── utils/                     // Прочие утилиты и хелперы
-│   │   └── helpers.js
-│   ├── App.jsx                    // Корневой компонент
-│   ├── main.jsx                   // Точка входа
-│   └── vite.config.js             // Конфигурация Vite
-├── index.html                     // Основной HTML-файл
-├── package.json
-└── README.md
+Страницы и их функции
+Страница 1: Выбор длины слова
+Варианты: короткие, средние, длинные.
+Для этого, при подготовке можно определить, какие слова соответствуют этой длине.
+Преобразовать слова из данных, разделить по длинам.
+Хранить выбранную длину.
+Страница 2: Выбор категории и темы
+Показать список категорий.
+После выбора, показывать две темы внутри этой категории.
+Хранить выбранную категорию и выбранные темы.
+Страница 3: Игра с словами
+Генерировать слово из выбранной темы.
+Пользователь выбирает, к какой теме относится слово (две кнопки).
+При правильном ответе — цвет кнопки зеленый, при ошибке — красный.
+После ответа показывать следующее слово.
+Предложенная схема архитектуры
+1. Хранилище состояния (State)
+selectedLength: string ('short', 'medium', 'long')
+selectedCategory: Category | null
+selectedTopics: [string, string] (имена двух тем)
+currentWord: string
+currentOptions: string[] (две темы)
+score: число (по желанию для подсчета)
+2. Компоненты
+LengthSelector: выбор длины слова.
+CategorySelector: выбор категории и двух тем.
+GamePlay: отображение слова и кнопок, логика проверки.
+3. Важные функции
+Фильтрация слов по длине
+typescript
 
-1. Скачиваем шрифты, помещаем их в папку public/fonts.
-2. Создаем папку app/styles, где размещаем css fonts, reset, typography, variables
-3. Создаем папку shared. Внутри папки:
-- assets (icons, images, logo)
-- hooks
-- lib/constants
-- ui (компоненты по мелочи)
+const filterWordsByLength = (words: WordItem[], lengthCategory: 'short' | 'medium' | 'long') => {  return words.filter(word => {    const len = word.word.length;    if (lengthCategory === 'short') return len <= 3;    if (lengthCategory === 'medium') return len > 3 && len <= 6;    if (lengthCategory === 'long') return len > 6;  });};
+Выбор слова случайно
+Обработка клика по кнопке
+Примерный поток
+Страница 1: Пользователь выбирает длину слова, например, "средние".
+Переход к странице 2: Пользователь выбирает категорию и две темы.
+Переход к странице 3: Играющаяся часть, по очереди показывается слово.
+Пользователь выбирает тему (правильно или неправильно), кнопка меняет цвет.
+По окончании — можно показывать счет или просто начинать заново.
+Варианты реализации
+Управление состоянием через React Context или useReducer.
+Использование React Router для переключения страниц.
+Локальное состояние компонентов для каждого экрана.
+Итоговая структура файлов
 
+src/
+|-- components/
+|    |-- LengthSelector.tsx
+|    |-- CategorySelector.tsx
+|    |-- GamePlay.tsx
+|
+|-- pages/
+|    |-- PageLength.tsx
+|    |-- PageCategory.tsx
+|    |-- PageGame.tsx
+|
+|-- context/
+|    |-- AppContext.tsx
+|
+|-- data/
+|    |-- data.ts
+Преимущества такого подхода:
 
-components/
-│
-├── MainPage.tsx
-├── TopicButtonList.tsx
-├── ModalWindow.tsx
-├── TopicSelectionModal.tsx
-├── ParametersModal.tsx
-├── WordsDisplayModal.tsx
-│
-/stores/ (если используете Redux или Context)
-
-
-
-
+Модульность.
+Легко расширять — добавлять новые категории или лингвистические правила.
+Узкая специализация компонентов.
