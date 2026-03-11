@@ -1,4 +1,5 @@
-// Checkbox.types.ts
+import React from 'react';
+
 export interface CheckboxProps {
   label: string;                // подпись к чекбоксу
   checked: boolean;             // состояние галочки

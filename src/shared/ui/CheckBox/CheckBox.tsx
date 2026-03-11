@@ -3,7 +3,7 @@ import React from 'react';
 import styles from './Checkbox.module.css';
 import { CheckboxProps } from './types';
 
-const CheckBox: React.FC<CheckboxProps> = ({
+export const CheckBox: React.FC<CheckboxProps> = ({
   label,
   checked,
   onChange,
