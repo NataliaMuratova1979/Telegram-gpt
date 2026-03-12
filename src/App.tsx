@@ -3,9 +3,13 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import GameContext from './context/GameContext';
-import { getCategories } from './api/mockApi';
+import { fetchCategories } from './services/categoryApi';
+import { ICategory } from './api/types';
 import CategoryButtons from './components/CategoryButtons';
 import TopicButton from './components/TopicButton';
+import WordCarousel from './components/WordCarousel';
+import { useCategoryWords } from './hooks/useCategoryWords';
+import { WordItem } from './utils/categoryWords';
 
 const App: React.FC = () => {
   const ctx = useContext(GameContext);
@@ -14,11 +18,22 @@ const App: React.FC = () => {
 
   const { state, dispatch } = ctx;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  // выбранная тема для фильтрации слов в карусели
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  // Массив слов для активной категории получаем через хук
+  const categories = state.categories ?? [];
+  const categoryWords: WordItem[] = useCategoryWords(categories, activeCategory);
+
+  // Сбрасываем тему при смене категории
+  useEffect(() => {
+    setSelectedTopic(null);
+  }, [activeCategory]);
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const cats = await getCategories();
+        const cats = await fetchCategories();
         console.log('Категории загружены:', cats);
         dispatch({ type: 'SET_CATEGORIES', payload: cats });
       } catch (err) {
@@ -29,15 +44,17 @@ const App: React.FC = () => {
     loadCategories();
   }, [dispatch]);
 
-  // state.categories теперь ICategory[] (модель с вложенной структурой)
-  const categories = state.categories ?? [];
+  // Удобная безопасная запись текущей категории
+  const currentCategory = categories.find((c) => c.category === activeCategory);
 
   if (!categories.length) {
     return <div>Загрузка категорий...</div>;
   }
 
-  // Найти текущую категорию для отображения её тем
-  const currentCategory = categories.find((c) => c.category === activeCategory);
+  // Фильтр слов карусели по выбранной теме (если тема не выбрана — показываем все слова)
+  const wordsForCarousel = selectedTopic
+    ? categoryWords.filter((w) => w.topic === selectedTopic)
+    : categoryWords;
 
   return (
     <div> 
@@ -55,30 +72,73 @@ const App: React.FC = () => {
 
       {/* Под выбранной категорией показываем две темы и их слова (слова загружаются вместе с данными) */}
       {activeCategory && currentCategory && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ marginBottom: 8 }}>Темы:</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {currentCategory.topics.slice(0, 2).map((t) => (
-              <div key={t.topic} style={{ display: 'flex', flexDirection: 'column' }}>
-                <TopicButton
-                  topic={t.topic}
-                  onSelect={(name) => {
-                    console.log('Выбрана тема:', name);
-                    dispatch({ type: 'SET_TOPIC', payload: name });
-                  }}
-                />
-                <ul style={{ marginTop: 6 }}>
-                  {t.words.map((w) => (
-                    <li key={w.word}>{w.word}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+        <div style={{ marginTop: 12, display: 'flex', gap: 16 }}>
+          {/* Первая тема */}
+          {currentCategory.topics[0] && (
+            <div
+              key={currentCategory.topics[0].topic}
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
+              <TopicButton
+                topic={currentCategory.topics[0].topic}
+                onSelect={(name) => {
+                  console.log('Выбрана тема:', name);
+                  dispatch({ type: 'SET_TOPIC', payload: name });
+                  setSelectedTopic(currentCategory.topics[0].topic);
+                }}
+              />
+              <ul style={{ marginTop: 6 }}>
+                {currentCategory.topics[0].words.map((w: any) => (
+                  <li key={(typeof w === 'string' ? w : w.word) as string}>
+                    {typeof w === 'string' ? w : w.word}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Карусель слов между двумя темами */}
+          <WordCarousel words={wordsForCarousel} interval={1500} />
+
+          {/* Вторая тема */}
+          {currentCategory.topics[1] && (
+            <div
+              key={currentCategory.topics[1].topic}
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
+              <TopicButton
+                topic={currentCategory.topics[1].topic}
+                onSelect={(name) => {
+                  console.log('Выбрана тема:', name);
+                  dispatch({ type: 'SET_TOPIC', payload: name });
+                  setSelectedTopic(currentCategory.topics[1].topic);
+                }}
+              />
+              <ul style={{ marginTop: 6 }}>
+                {currentCategory.topics[1].words.map((w: any) => (
+                  <li key={(typeof w === 'string' ? w : w.word) as string}>
+                    {typeof w === 'string' ? w : w.word}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Дополнительная часть UI: вложенная структура категорий (не обязательно) */}
+      {/* Дополнительная часть UI: отображение всех слов выбранной категории */}
+      {categoryWords.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Слова выбранной категории</h3>
+          <ul>
+            {categoryWords.map((word, idx) => (
+              <li key={`${word.word}-${idx}`}>{word.word} <em>({word.topic})</em></li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Остальная часть UI: вложенная структура категорий (не обязательно) */}
       {categories.map((cat) => (
         <div key={cat.category} style={{ marginTop: 16 }}>
           <h2>{cat.category}</h2>
@@ -86,8 +146,10 @@ const App: React.FC = () => {
             <div key={t.topic} style={{ marginLeft: 16 }}>
               <strong>{t.topic}</strong>
               <ul>
-                {t.words.map((w) => (
-                  <li key={w.word}>{w.word}</li>
+                {t.words.map((w: any) => (
+                  <li key={(typeof w === 'string' ? w : w.word) as string}>
+                    {typeof w === 'string' ? w : w.word}
+                  </li>
                 ))}
               </ul>
             </div>
