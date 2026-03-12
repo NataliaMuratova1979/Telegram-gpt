@@ -1,93 +1,56 @@
-// src/context/GameContext.tsx
-import React, { createContext, useReducer, ReactNode } from 'react';
+// context/GameContext.tsx
+import React, { createContext, useReducer } from 'react'; // Импортируем React и нужные хуки: createContext и useReducer
+import type { ICategory, ITopic, IWord } from '../api/types'; // Импортируем типы вложенной структуры категорий (категория → тема → слово)
 
-// Типы данных
-export type ICategory = {
-  category: string;
-  topics: ITopic[];
-};
-export type ITopic = {
-  topic: string;
-  words: IWordItem[];
-};
-export type IWordItem = { word: string };
+// ТИПЫ
+export type AppAction =
+  | { type: 'SET_CATEGORIES'; payload: ICategory[] } // Действие: загрузить/установить весь дерево категорий (ICategory[])
+  | { type: 'SET_CATEGORY'; payload: string } // Действие: установить текущую категорию (пример)
+  | { type: 'SET_TOPICS'; payload: any } // Действие: обновить темы внутри категории (пример)
+  | { type: 'SET_CURRENT_WORD'; payload: string } // Действие: установить текущее слово
+  | { type: 'SET_OPTIONS'; payload: any } // Действие: задать опции (пример)
+  | { type: 'ANSWER'; payload: any } // Действие: ответ или результат
+  | { type: 'RESET_GAME' }; // Действие: сбросить игру
 
-type State = {
-  selectedLength: 'short' | 'medium' | 'long' | null;
-  selectedCategory: ICategory | null;
-  selectedTopics: [string, string] | null;
-  currentWord: string | null;
-  currentOptions: string[]; // две темы
-  correctAnswers: number; // правильных ответов
-  wrongAnswers: number;   // неправильных ответов
-};
+// Стейт приложения
+export interface State {
+  categories: ICategory[]; // Храним дерево категорий (ICategory[]) — каждая категория содержит темы и слова
+  // ... другие поля вашего state (например, currentCategory, topics и т.д.)
+}
 
-// Начальное состояние
+// начальное состояние
 const initialState: State = {
-  selectedLength: null,
-  selectedCategory: null,
-  selectedTopics: null,
-  currentWord: null,
-  currentOptions: [],
-  correctAnswers: 0,
-  wrongAnswers: 0,
+  categories: [], // инициализируем пустым массивом категорий
+  // ... инициализация остальных полей (если есть)
 };
 
-// Типы действий
-type Action =
-  | { type: 'SET_LENGTH'; payload: 'short' | 'medium' | 'long' }
-  | { type: 'SET_CATEGORY'; payload: ICategory }
-  | { type: 'SET_TOPICS'; payload: [string, string] }
-  | { type: 'SET_CURRENT_WORD'; payload: string }
-  | { type: 'SET_OPTIONS'; payload: string[] }
-  | { type: 'ANSWER'; payload: boolean } // правильный (true) или неправильный (false)
-  | { type: 'RESET_GAME' };
-
-
-// Редуктор
-function reducer(state: State, action: Action): State {
+// редьюсер
+function reducer(state: State, action: AppAction): State {
   switch (action.type) {
-    case 'SET_LENGTH':
-      return { ...state, selectedLength: action.payload };
-    case 'SET_CATEGORY':
-      return { ...state, selectedCategory: action.payload };
-    case 'SET_TOPICS':
-      return { ...state, selectedTopics: action.payload };
-    case 'SET_CURRENT_WORD':
-      return { ...state, currentWord: action.payload };
-    case 'SET_OPTIONS':
-      return { ...state, currentOptions: action.payload }; // исправлено здесь
-    case 'ANSWER':
-      return {
-        ...state,
-        correctAnswers: action.payload ? state.correctAnswers + 1 : state.correctAnswers,
-        wrongAnswers: !action.payload ? state.wrongAnswers + 1 : state.wrongAnswers,
-      };
-    case 'RESET_GAME':
-      return {
-        ...initialState,
-        selectedLength: state.selectedLength,
-      };
+    case 'SET_CATEGORIES':
+      return { ...state, categories: action.payload }; // обновляем дерево категорий (payload: ICategory[])
+    // здесь должны быть ваши существующие кейсы, например:
+    // case 'SET_CATEGORY': return { ...state, currentCategory: action.payload };
+    // ...
     default:
-      return state;
+      return state; // по умолчанию возвращаем текущее состояние
   }
 }
 
-// Создаём контекст
-const GameContext = createContext<{
-  state: State;
-  dispatch: React.Dispatch<Action>;
-}>({ state: initialState, dispatch: () => {} });
+// контекст
+const GameContext = createContext<{ state: State; dispatch: React.Dispatch<AppAction> } | null>(null); // создаём контекст с типами state и dispatch либо null
 
-// Провайдер
-export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+type Props = { children?: React.ReactNode }; // пропсы для провайдера: могут быть дети
 
+// провайдер контекста
+export const GameProvider: React.FC<Props> = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, initialState); // создаём локальный state и dispatch через useReducer
   return (
-    <GameContext.Provider value={{ state, dispatch }}>
+    <GameContext.Provider value={{ state, dispatch }}> // оборачиваем дочерние элементы в провайдер контекста
       {children}
     </GameContext.Provider>
   );
 };
 
-export default GameContext;
+// экспорт контекста по умолчанию
+export default GameContext; // экспорт по умолчанию для удобного импорта в другие файлы
