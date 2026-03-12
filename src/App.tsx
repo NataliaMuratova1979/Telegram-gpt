@@ -1,10 +1,11 @@
-// App.tsx
+// src/App.tsx
 'use client'; // если вы используете Next.js, это клиентский компонент
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import GameContext from './context/GameContext';
 import { getCategories } from './api/mockApi';
-import { CategoryButtons } from './components/CategoryButtons'; // импорт нового контейнера кнопок
+import CategoryButtons from './components/CategoryButtons';
+import TopicButton from './components/TopicButton';
 
 const App: React.FC = () => {
   const ctx = useContext(GameContext);
@@ -12,6 +13,7 @@ const App: React.FC = () => {
   if (!ctx) return null;
 
   const { state, dispatch } = ctx;
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -34,8 +36,11 @@ const App: React.FC = () => {
     return <div>Загрузка категорий...</div>;
   }
 
+  // Найти текущую категорию для отображения её тем
+  const currentCategory = categories.find((c) => c.category === activeCategory);
+
   return (
-    <div> // контейнер страницы
+    <div> 
       <h1>Категории</h1>
 
       {/* Контейнер кнопок: передаём данные и обработчик выбора */}
@@ -43,9 +48,35 @@ const App: React.FC = () => {
         categories={categories}
         onSelectCategory={(category) => {
           console.log('Выбрана категория:', category);
+          setActiveCategory(category);
           dispatch({ type: 'SET_CATEGORY', payload: category });
         }}
       />
+
+      {/* Под выбранной категорией показываем две темы и их слова (слова загружаются вместе с данными) */}
+      {activeCategory && currentCategory && (
+        <div style={{ marginTop: 12 }}>
+          <div style={{ marginBottom: 8 }}>Темы:</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {currentCategory.topics.slice(0, 2).map((t) => (
+              <div key={t.topic} style={{ display: 'flex', flexDirection: 'column' }}>
+                <TopicButton
+                  topic={t.topic}
+                  onSelect={(name) => {
+                    console.log('Выбрана тема:', name);
+                    dispatch({ type: 'SET_TOPIC', payload: name });
+                  }}
+                />
+                <ul style={{ marginTop: 6 }}>
+                  {t.words.map((w) => (
+                    <li key={w.word}>{w.word}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Дополнительная часть UI: вложенная структура категорий (не обязательно) */}
       {categories.map((cat) => (
