@@ -1,22 +1,26 @@
 // src/hooks/useCategoryWords.ts
-import { useEffect, useState } from 'react';
-import type { ICategory } from '../api/types';
-import { collectAllWordsForActiveCategory } from '../utils/categoryWords';
+import { ICategory, IWord } from '../api/types';
 
 export const useCategoryWords = (
   categories: ICategory[],
   activeCategory: string | null
-): string[] => {
-  const [words, setWords] = useState<string[]>([]);
+): IWord[] => {
+  if (!activeCategory) return [];
 
-  useEffect(() => {
-    const result = collectAllWordsForActiveCategory(categories, activeCategory);
-    setWords(result);
-    console.log('Слова для категории', activeCategory, '(', activeCategory, '):', result);
-  }, [categories, activeCategory]);
+  // Находим категорию
+  const category = categories.find(c => c.category === activeCategory);
+  if (!category) return [];
+
+  // Формируем список всех слов с темой
+  const words: IWord[] = [];
+
+  category.topics.forEach(topic => {
+    topic.words.forEach(w => {
+      // w может быть строкой или объектом с word
+      const wordStr = typeof w === 'string' ? w : w.word;
+      words.push({ word: wordStr, topic: topic.topic });
+    });
+  });
 
   return words;
 };
-
-// Можно оставить и дефолтный экспорт, если удобнее
-export default useCategoryWords;

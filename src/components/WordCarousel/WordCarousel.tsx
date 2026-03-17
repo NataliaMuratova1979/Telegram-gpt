@@ -1,37 +1,24 @@
 // src/components/WordCarousel.tsx
-import React, { useEffect, useState } from 'react';
-import type { WordItem } from '../../utils/categoryWords'; // новый экспорт типа
+'use client';
+
+import React from 'react';
+import type { IWord } from '../../api/types';
 
 type WordCarouselProps = {
-  words: WordItem[];
-  interval?: number; // мс между сменами слов
+  words: IWord[];
+  currentIndex: number; // индекс текущего слова
+  onNext: () => void;     // функция для переключения слова
   className?: string;
 };
 
-export const WordCarousel: React.FC<WordCarouselProps> = ({
+const WordCarousel: React.FC<WordCarouselProps> = ({
   words,
-  interval = 1500,
+  currentIndex,
+  onNext,
   className,
 }) => {
-  const [index, setIndex] = useState(0);
-
-  // сброс индекса при изменении слов
-  useEffect(() => {
-    setIndex(0);
-  }, [words]);
-
-  // авто смена слов
-  useEffect(() => {
-    if (words.length === 0) return;
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % words.length);
-    }, interval);
-    return () => clearInterval(id);
-  }, [words, interval]);
-
   if (words.length === 0) return null;
-
-  const item = words[index];
+  const item = words[currentIndex];
 
   return (
     <div
@@ -42,7 +29,9 @@ export const WordCarousel: React.FC<WordCarouselProps> = ({
         border: '1px solid #ccc',
         borderRadius: 6,
         textAlign: 'center',
+        cursor: 'pointer', // клик по карточке
       }}
+      onClick={onNext} // переключение при клике
     >
       <div style={{ fontWeight: 600, marginBottom: 6 }}>
         Слово

@@ -1,22 +1,16 @@
-// src/utils/categoryWords.ts
-import type { ICategory } from '../api/types';
+import type { ICategory, IWord } from '../api/types';
 
-export type WordItem = {
-  word: string;
-  topic: string;
-};
-
-export const collectWordsFromCategory = (category: ICategory): string[] => {
-  // Предположим, структура: category.topics[].words[].word или строки
+export const collectWordsFromCategory = (category: ICategory): IWord[] => {
+  // Структура: category.topics[].words[].word или строки, предполагается, что возвращаем IWord[]
   return category.topics.flatMap((t) =>
-    t.words.map((w: any) => (typeof w === 'string' ? w : w.word))
+    t.words.map((w: IWord) => ({ ...w })) // возвращаем копию IWord, чтобы тип соответствовал
   );
 };
 
 export const collectAllWordsForActiveCategory = (
   categories: ICategory[],
   activeCategory: string | null
-): string[] => {
+): IWord[] => {
   if (!activeCategory) return [];
   const cat = categories.find((c) => c.category === activeCategory);
   if (!cat) return [];

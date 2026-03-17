@@ -1,46 +1,79 @@
-// context/GameContext.tsx
-import React, { createContext, useReducer } from 'react'; // Импортируем React и нужные хуки: createContext и useReducer
-import type { ICategory, ITopic, IWord } from '../api/types'; // Импортируем типы вложенной структуры категорий (категория → тема → слово)
+import React, { createContext, useReducer } from 'react';
+import type { ICategory, IWord } from '../api/types';
 
-// ТИПЫ
-// context/GameContext.tsx
-
+// Определение действий для редьюсера
 export type AppAction =
   | { type: 'SET_CATEGORIES'; payload: ICategory[] }
   | { type: 'SET_CATEGORY'; payload: string }
-  | { type: 'SET_TOPICS'; payload: any }
-  | { type: 'SET_TOPIC'; payload: string | null } // новая
-  | { type: 'SET_CURRENT_WORD'; payload: string }
-  | { type: 'SET_OPTIONS'; payload: any }
-  | { type: 'ANSWER'; payload: any }
-  | { type: 'RESET_GAME' };
+  | { type: 'SET_TOPIC'; payload: string | null }
+  | { type: 'SET_CATEGORY_WORDS'; payload: IWord[] }
+  | { type: 'SET_CURRENT_WORD_INDEX'; payload: number }
+  | { type: 'ADD_ANSWER'; payload: { index: number; correct: boolean } }
+  | { type: 'SET_ANSWERED_WORDS'; payload: { index: number; correct: boolean }[] }; // обязательно массив
 
+// Структура состояния
 export interface State {
   categories: ICategory[];
-  currentTopic: string | null; // новая
-  // ... другие поля вашего state (если есть)
+  activeCategory: string | null;
+  activeTopic: string | null;
+  categoryWords: IWord[]; // Все слова выбранной категории
+  currentWordIndex: number; // Индекс текущего слова
+  answeredWords: { index: number; correct: boolean }[]; // история ответов
 }
 
+// Изначальный стейт
 const initialState: State = {
   categories: [],
-  currentTopic: null, // новая
-  // ... инициализация остальных полей
+  activeCategory: null,
+  activeTopic: null,
+  categoryWords: [],
+  currentWordIndex: 0,
+  answeredWords: [],
 };
 
+// Редьюсер
 function reducer(state: State, action: AppAction): State {
   switch (action.type) {
     case 'SET_CATEGORIES':
       return { ...state, categories: action.payload };
-    // ваши существующие кейсы...
+
+    case 'SET_CATEGORY':
+      return {
+        ...state,
+        activeCategory: action.payload,
+        activeTopic: null, // при смене категории сбрасываем тему
+        categoryWords: [], // очищаем слова
+        currentWordIndex: 0,
+        answeredWords: [], // очищаем ответы
+      };
+
     case 'SET_TOPIC':
-      return { ...state, currentTopic: action.payload };
+      return { ...state, activeTopic: action.payload };
+
+    case 'SET_CATEGORY_WORDS':
+      return { ...state, categoryWords: action.payload };
+
+    case 'SET_CURRENT_WORD_INDEX':
+      return { ...state, currentWordIndex: action.payload };
+
+    case 'ADD_ANSWER':
+      return {
+        ...state,
+        answeredWords: [...state.answeredWords, action.payload],
+      };
+
+    case 'SET_ANSWERED_WORDS':
+      return { ...state, answeredWords: action.payload };
+
     default:
       return state;
   }
 }
 
+// Создаем контекст
 const GameContext = createContext<{ state: State; dispatch: React.Dispatch<AppAction> } | null>(null);
 
+// Провайдер
 export const GameProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   return (

@@ -1,90 +1,91 @@
-// src/App.tsx
-'use client'; // если вы используете Next.js, это клиентский компонент
+'use client';
 
 import React, { useContext, useEffect, useState } from 'react';
 import GameContext from './context/GameContext';
 import { fetchCategories } from './services/categoryApi';
-import { ICategory } from './api/types';
+import { ICategory, ITopic, IWord } from './api/types';
 import CategoryButtons from './components/CategoryButtons';
 import TopicButton from './components/TopicButton';
-import WordCarousel from './components/WordCarousel';
 import { useCategoryWords } from './hooks/useCategoryWords';
-import { WordItem } from './utils/categoryWords';
 
 const App: React.FC = () => {
   const ctx = useContext(GameContext);
-
   if (!ctx) return null;
-
   const { state, dispatch } = ctx;
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  // выбранная тема для фильтрации слов в карусели
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
-  // Массив слов для активной категории получаем через хук
   const categories = state.categories ?? [];
-  const categoryWords: WordItem[] = useCategoryWords(categories, activeCategory);
+  const activeCategoryName = state.activeCategory;
+  const currentCategory = categories.find(c => c.category === activeCategoryName);
 
-  // Сбрасываем тему при смене категории
+  const categoryWords: IWord[] = useCategoryWords(categories, activeCategoryName);
+
+  const [wordIndex, setWordIndex] = useState(0);
+
   useEffect(() => {
-    setSelectedTopic(null);
-  }, [activeCategory]);
+    setWordIndex(0);
+  }, [activeCategoryName, categoryWords]);
+
+  useEffect(() => {
+    console.log('Меняется активная категория, сброс темы');
+    dispatch({ type: 'SET_TOPIC', payload: null });
+  }, [activeCategoryName, dispatch]);
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const cats = await fetchCategories();
-        console.log('Категории загружены:', cats);
+        console.log('Получены категории:', cats);
         dispatch({ type: 'SET_CATEGORIES', payload: cats });
       } catch (err) {
-        console.error('Ошибка загрузки категорий:', err);
+        // обработка ошибок
       }
     };
-
     loadCategories();
   }, [dispatch]);
-
-  // Удобная безопасная запись текущей категории
-  const currentCategory = categories.find((c) => c.category === activeCategory);
 
   if (!categories.length) {
     return <div>Загрузка категорий...</div>;
   }
 
-  // Фильтр слов карусели по выбранной теме (если тема не выбрана — показываем все слова)
-  const wordsForCarousel = selectedTopic
-    ? categoryWords.filter((w) => w.topic === selectedTopic)
-    : categoryWords;
-
   return (
-    <div> 
+    <div>
       <h1>Категории</h1>
-
-      {/* Контейнер кнопок: передаём данные и обработчик выбора */}
+      {/* выбор категории */}
       <CategoryButtons
         categories={categories}
         onSelectCategory={(category) => {
-          console.log('Выбрана категория:', category);
-          setActiveCategory(category);
+          console.log('Выбор категории:', category);
           dispatch({ type: 'SET_CATEGORY', payload: category });
+          
+          const selectedCategory = categories.find(c => c.category === category);
+          if (selectedCategory && selectedCategory.topics.length > 0) {
+            const firstTopic = selectedCategory.topics[0].topic;
+            dispatch({ type: 'SET_TOPIC', payload: firstTopic });
+            
+            // Собираем все слова из обеих тем и отмечаем к какой теме относятся
+            const allWordsWithTopic: IWord[] = selectedCategory.topics.flatMap(t => 
+              t.words.map(w => ({ ...w, topic: t.topic }))
+            );
+            // Логируем все слова
+            console.log('Все слова из категории по обеим темам:', allWordsWithTopic);
+            // Загружаем в стейт
+            dispatch({ type: 'SET_CATEGORY_WORDS', payload: allWordsWithTopic });
+          } else {
+            dispatch({ type: 'SET_CATEGORY_WORDS', payload: [] });
+          }
         }}
       />
 
-      {/* Под выбранной категорией показываем две темы и их слова (слова загружаются вместе с данными) */}
-      {activeCategory && currentCategory && (
+      {/* отображение тем при выбранной категории */}
+      {activeCategoryName && currentCategory && (
         <div style={{ marginTop: 12, display: 'flex', gap: 16 }}>
-          {/* Первая тема */}
           {currentCategory.topics[0] && (
-            <div
-              key={currentCategory.topics[0].topic}
-              style={{ display: 'flex', flexDirection: 'column' }}
-            >
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               <TopicButton
                 topic={currentCategory.topics[0].topic}
                 onSelect={(name) => {
-                  console.log('Выбрана тема:', name);
+                  console.log('Выбор темы:', name);
                   dispatch({ type: 'SET_TOPIC', payload: name });
-                  setSelectedTopic(currentCategory.topics[0].topic);
                 }}
               />
               <ul style={{ marginTop: 6 }}>
@@ -96,22 +97,13 @@ const App: React.FC = () => {
               </ul>
             </div>
           )}
-
-          {/* Карусель слов между двумя темами */}
-          <WordCarousel words={wordsForCarousel} interval={1500} />
-
-          {/* Вторая тема */}
           {currentCategory.topics[1] && (
-            <div
-              key={currentCategory.topics[1].topic}
-              style={{ display: 'flex', flexDirection: 'column' }}
-            >
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               <TopicButton
                 topic={currentCategory.topics[1].topic}
                 onSelect={(name) => {
-                  console.log('Выбрана тема:', name);
+                  console.log('Выбор темы:', name);
                   dispatch({ type: 'SET_TOPIC', payload: name });
-                  setSelectedTopic(currentCategory.topics[1].topic);
                 }}
               />
               <ul style={{ marginTop: 6 }}>
@@ -126,19 +118,21 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Дополнительная часть UI: отображение всех слов выбранной категории */}
+      {/* список слов по выбранной категории и теме */}
       {categoryWords.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <h3>Слова выбранной категории</h3>
           <ul>
             {categoryWords.map((word, idx) => (
-              <li key={`${word.word}-${idx}`}>{word.word} <em>({word.topic})</em></li>
+              <li key={`${word.word}-${idx}`}>
+                {word.word} <em>({word.topic})</em>
+              </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Остальная часть UI: вложенная структура категорий (не обязательно) */}
+      {/* все категории и темы */}
       {categories.map((cat) => (
         <div key={cat.category} style={{ marginTop: 16 }}>
           <h2>{cat.category}</h2>

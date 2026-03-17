@@ -5,6 +5,7 @@ export type TopicButtonProps = {
   topic: string;                   // название темы, которое отображается на кнопке
   onSelect?: (topic: string) => void; // обработчик клика по кнопке
   disabled?: boolean;
+  style?: React.CSSProperties; // добавляем сюд
 };
 
 export const TopicButton: React.FC<TopicButtonProps> = ({ topic, onSelect, disabled }) => {
