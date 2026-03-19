@@ -13,6 +13,8 @@ import { ICategory, ITopic, IWord } from './api/types';
 // Импортируем типы данных (категории, темы и слова)
 
 import CategoryButtons from './components/CategoryButtons';
+
+import TopicChooser from './components/TopicChooser'
 // Импорт компонента для выбора категории
 
 import TopicButton from './components/TopicButton';
@@ -118,100 +120,18 @@ useEffect(() => {
         }}
       />
 
-      {/* Отображение тем выбранной категории */}
-      {activeCategoryName && currentCategory && (
-  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {/* Первый блок с кнопкой темы и списком слов */}
-    {currentCategory.topics[0] && (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <TopicButton
-          topic={currentCategory.topics[0].topic}
-          onSelect={(name) => {
-            console.log('Выбор темы:', name);
-            dispatch({ type: 'SET_TOPIC', payload: name });
-          }}
-        />
-        <ul style={{ marginTop: 6 }}>
-          {currentCategory.topics[0].words.map((w: any) => (
-            <li key={(typeof w === 'string' ? w : w.word) as string}>
-              {typeof w === 'string' ? w : w.word}
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
-
-    {/* Массив слов по выбранной категории, показанный между кнопками */}
-    {categoryWords.length > 0 && (
-      <div style={{ paddingLeft: 16 }}>
-        <h4>Слова выбранной категории:</h4>
-        <ul>
-          {categoryWords.map((word, idx) => (
-            <li key={`${word.word}-${idx}`}>
-              {word.word} <em>({word.topic})</em>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
-
-    <ShuffledWordsList words={categoryWords} />
-
-    {/* Второй блок с кнопкой темы и списком слов */}
-    {currentCategory.topics[1] && (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <TopicButton
-          topic={currentCategory.topics[1].topic}
-          onSelect={(name) => {
-            console.log('Выбор темы:', name);
-            dispatch({ type: 'SET_TOPIC', payload: name });
-          }}
-        />
-        <ul style={{ marginTop: 6 }}>
-          {currentCategory.topics[1].words.map((w: any) => (
-            <li key={(typeof w === 'string' ? w : w.word) as string}>
-              {typeof w === 'string' ? w : w.word}
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
-  </div>
+      {activeCategoryName && currentCategory && categoryWords.length > 0 && (
+  <TopicChooser
+    topics={[
+      currentCategory.topics[0]?.topic ?? 'Тема 1',
+      currentCategory.topics[1]?.topic ?? 'Тема 2',
+    ]}
+    words={categoryWords}
+  />
 )}
 
-      {/* Список слов выбранной категории (если есть) */}
-      {categoryWords.length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Слова выбранной категории</h3>
-          <ul>
-            {categoryWords.map((word, idx) => (
-              <li key={`${word.word}-${idx}`}>
-                {word.word} <em>({word.topic})</em>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Вся сумма всех категорий и тем */}
-      {categories.map((cat) => (
-        <div key={cat.category} style={{ marginTop: 16 }}>
-          <h2>{cat.category}</h2>
-          {cat.topics.map((t) => (
-            <div key={t.topic} style={{ marginLeft: 16 }}>
-              <strong>{t.topic}</strong>
-              <ul>
-                {t.words.map((w: any) => (
-                  <li key={(typeof w === 'string' ? w : w.word) as string}>
-                    {typeof w === 'string' ? w : w.word}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+  
+</div>
   );
 };
 
