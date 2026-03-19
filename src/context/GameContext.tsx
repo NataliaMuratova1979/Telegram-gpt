@@ -22,7 +22,7 @@ export interface State {
 }
 
 // Изначальный стейт
-const initialState: State = {
+export const initialState: State = {
   categories: [],
   activeCategory: null,
   activeTopic: null,
@@ -30,6 +30,8 @@ const initialState: State = {
   currentWordIndex: 0,
   answeredWords: [],
 };
+
+
 
 // Редьюсер
 function reducer(state: State, action: AppAction): State {
@@ -70,8 +72,13 @@ function reducer(state: State, action: AppAction): State {
   }
 }
 
+type GameContextType = {
+  state: State;
+  dispatch: React.Dispatch<AppAction>;
+};
+
 // Создаем контекст
-const GameContext = createContext<{ state: State; dispatch: React.Dispatch<AppAction> } | null>(null);
+const GameContext = createContext<GameContextType | null>(null);
 
 // Провайдер
 export const GameProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {

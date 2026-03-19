@@ -1,16 +1,11 @@
-// src/utils/helpers.ts
+// utils/shuffleArray.ts
 
-/**
- * Перемешивает массив случайным образом и возвращает новый массив.
- * @param array - Исходный массив
- * @returns Новый перемешанный массив
- */
-
+// Функция случайного перемешивания массива (алгоритм Фишера-Йейтса)
 export function shuffleArray<T>(array: T[]): T[] {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return arr;
+  return shuffled;
 }
