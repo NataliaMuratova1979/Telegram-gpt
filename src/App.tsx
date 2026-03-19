@@ -17,11 +17,6 @@ import CategoryButtons from './components/CategoryButtons';
 import TopicChooser from './components/TopicChooser'
 // Импорт компонента для выбора категории
 
-import TopicButton from './components/TopicButton';
-
-import ShuffledWordsList from './shared/ui/ShuffledWordsList'; 
-// Импорт компонента для выбора темы
-
 import { useCategoryWords } from './hooks/useCategoryWords';
 // Импорт кастомного хука для получения слов по выбранной категории
 

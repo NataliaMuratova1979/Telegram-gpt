@@ -1,95 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import type { IWord } from '../../api/types'; // скорректируйте путь
+import React, { useState, useEffect, useRef } from 'react';
+import TopicButton from '../TopicButton';
+import type { IWord } from '../../api/types';
 
 type TopicChooserProps = {
-  words: IWord[];               // Перемешанный массив слов с полем topic
-  topics: [string, string];     // Две темы в виде кортежа
+  words: IWord[];
+  topics: [string, string];
 };
 
-const TopicChooser: React.FC<TopicChooserProps> = ({ words, topics }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);      // Индекс текущего слова
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null); // Тема выбранной кнопки
-  const [buttonState, setButtonState] = useState<'neutral' | 'correct' | 'wrong'>('neutral'); // Статус кнопок (цвет)
+function shuffleArray<T>(array: T[]): T[] {
+  const copy = array.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
-  // Текущее слово для показа
-  const currentWord = words[currentIndex];
+const TopicChooser: React.FC<TopicChooserProps> = ({ words, topics }) => {
+  const [shuffledWords, setShuffledWords] = useState<IWord[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [buttonState, setButtonState] = useState<'neutral' | 'correct' | 'wrong'>('neutral');
+  const [wordVisible, setWordVisible] = useState(true);
+
+  const [correctCount, setCorrectCount] = useState(0);
+  const [wrongCount, setWrongCount] = useState(0);
+
+  const resetHighlightTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextWordTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Перемешиваем слова при монтировании и при изменении words
+  useEffect(() => {
+    const shuffled = shuffleArray(words);
+    setShuffledWords(shuffled);
+    setCurrentIndex(0);
+  }, [words]);
+
+  const currentWord = shuffledWords[currentIndex];
 
   useEffect(() => {
-    console.log(`Переходим к слову с индексом ${currentIndex}:`, currentWord?.word);
-    // Сбрасываем состояние кнопок при смене слова
-    setSelectedTopic(null);
-    setButtonState('neutral');
-  }, [currentIndex, currentWord]);
+    setWordVisible(true);
+  }, [currentIndex, shuffledWords]);
 
-  // Обработка клика по кнопке
+  useEffect(() => {
+    return () => {
+      if (resetHighlightTimeout.current) clearTimeout(resetHighlightTimeout.current);
+      if (nextWordTimeout.current) clearTimeout(nextWordTimeout.current);
+    };
+  }, []);
+
   const onTopicClick = (topic: string) => {
-    if (buttonState !== 'neutral') {
-      console.log('Ожидание задержки, игнорируем клик');
-      return; // блокируем повторные клики пока идет задержка
-    }
+    if (buttonState !== 'neutral') return;
 
-    console.log(`Пользователь выбрал тему "${topic}" для слова "${currentWord.word}" с темой "${currentWord.topic}"`);
     setSelectedTopic(topic);
 
-    if (topic === currentWord.topic) {
-      console.log('Выбор правильный');
+    if (currentWord && topic === currentWord.topic) {
       setButtonState('correct');
+      setCorrectCount((c) => c + 1);
     } else {
-      console.log('Выбор неверный');
       setButtonState('wrong');
+      setWrongCount((w) => w + 1);
     }
 
-    // Через 1 секунду переключаем слово
-    setTimeout(() => {
-      console.log('Переход к следующему слову');
-      setCurrentIndex((i) => (i + 1) % words.length); // зацикливаем массив
-    }, 1000);
+    resetHighlightTimeout.current = setTimeout(() => {
+      setButtonState('neutral');
+      setSelectedTopic(null);
+      setWordVisible(false);
+    }, 1100);
+
+    nextWordTimeout.current = setTimeout(() => {
+      setCurrentIndex((i) => (i + 1) % shuffledWords.length);
+      setWordVisible(true);
+    }, 2500);
   };
 
-  if (!currentWord) {
-    console.log('Список слов пуст или индекс вне диапазона');
-    return <div>Список слов пуст</div>;
-  }
+  if (!currentWord) return <div>Список слов пуст</div>;
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <div style={{ fontSize: 24, fontWeight: 'bold' }}>{currentWord.word}</div>
+  const getButtonColor = (topicName: string) => {
+    if (selectedTopic !== topicName) return '#eee';
+    if (buttonState === 'correct') return '#4caf50';
+    if (buttonState === 'wrong') return '#f44336';
+    return '#eee';
+  };
 
-      <div style={{ display: 'flex', gap: 16 }}>
-        {topics.map((topicName) => {
-          // Вычисляем цвет кнопки
-          let bgColor = '#eee';
-          if (selectedTopic === topicName) {
-            if (buttonState === 'correct') bgColor = '#4caf50'; // зеленый
-            else if (buttonState === 'wrong') bgColor = '#f44336'; // красный
-          }
+  // ... ваш существующий код
 
-          return (
-            <button
-              key={topicName}
-              onClick={() => onTopicClick(topicName)}
-              disabled={buttonState !== 'neutral'} // блокировка при ожидании
-              style={{
-                padding: '12px 24px',
-                fontSize: 16,
-                fontWeight: 'bold',
-                cursor: buttonState === 'neutral' ? 'pointer' : 'default',
-                backgroundColor: bgColor,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                minWidth: 120,
-                userSelect: 'none',
-                transition: 'background-color 0.3s ease',
-              }}
-            >
-              {topicName}
-            </button>
-          );
-        })}
-      </div>
+return (
+  <div
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 24,
+      minHeight: 220,
+      justifyContent: 'center',
+    }}
+  >
+    <div style={{ fontSize: 18 }}>
+      Правильных: <b>{correctCount}</b> — Неправильных: <b>{wrongCount}</b>
     </div>
-  );
+
+    <TopicButton
+      topic={topics[0]}
+      onSelect={onTopicClick}
+      disabled={buttonState !== 'neutral' || !wordVisible}  // изменено here
+      style={{ backgroundColor: getButtonColor(topics[0]) }}
+    />
+
+    <div
+      style={{
+        fontSize: 24,
+        fontWeight: 'bold',
+        height: 32,
+        marginTop: 12,
+        marginBottom: 12,
+        visibility: wordVisible ? 'visible' : 'hidden',
+        opacity: wordVisible ? 1 : 0,
+        transition: 'opacity 0.3s ease',
+        userSelect: 'none',
+      }}
+    >
+      {currentWord.word}
+    </div>
+
+    <TopicButton
+      topic={topics[1]}
+      onSelect={onTopicClick}
+      disabled={buttonState !== 'neutral' || !wordVisible}  // изменено here
+      style={{ backgroundColor: getButtonColor(topics[1]) }}
+    />
+  </div>
+);
 };
 
 export default TopicChooser;
