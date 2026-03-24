@@ -6,7 +6,7 @@ const data = mockData as ICategory[];
 
 /**
  * Получить список всех категорий (с темами и словами)
- * Возвращает массив объектов ICategory[]
+ * Возвращаем массив объектов ICategory[]
  */
 export const getCategories = (): Promise<ICategory[]> =>
   new Promise((resolve, reject) => {
